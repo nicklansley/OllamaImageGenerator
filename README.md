@@ -1,4 +1,5 @@
 # Ollama Image Generator
+![oig.png](oig.png)
 
 ## Overview
 This project is a simple proxy server for the Ollama Image Generator, which serves an HTML interface and forwards API requests to the Ollama API. The purpose of this is to overcome the CORS policy of many browserswhich prevents direct access to the Ollama API from a local HTML file. The main components include:
@@ -22,3 +23,4 @@ This project is a simple proxy server for the Ollama Image Generator, which serv
 ## Author
 - Nick Lansley
 - [GitHub](https://github.com/nicklansley)
+

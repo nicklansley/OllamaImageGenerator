@@ -14,7 +14,7 @@ This project is a simple proxy server for the Ollama Image Generator, which serv
 
 ## To set up and start the server
 - Clone the repository.
-- Ftom the terminal run: <pre>ollama pull x/z-image-turbo:bf16</pre>
+- From the terminal run: <pre>ollama pull x/z-image-turbo:bf16</pre>
 - Run `python3 server.py` in the terminal.
 - Open `http://localhost:8080` in your web browser.
 

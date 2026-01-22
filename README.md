@@ -12,7 +12,9 @@ This project is a simple proxy server for the Ollama Image Generator, which serv
 - The HTML interface is served directly from the server, allowing users to generate images through a web interface.
 - Tested to work with Python 3.9 and later
 
-## To start the server
+## To set up and start the server
+- Clone the repository.
+- Ftom the terminal run: <pre>ollama pull x/z-image-turbo:bf16</pre>
 - Run `python3 server.py` in the terminal.
 - Open `http://localhost:8080` in your web browser.
 

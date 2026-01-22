@@ -1,0 +1,789 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ollama Image Generator</title>
+    <meta name="description"
+        content="Generate AI images using Ollama's image generation models with real-time progress tracking">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --secondary-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            --success-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            --dark-bg: #0f0f23;
+            --card-bg: rgba(255, 255, 255, 0.05);
+            --card-border: rgba(255, 255, 255, 0.1);
+            --text-primary: #ffffff;
+            --text-secondary: #a0a0c0;
+            --input-bg: rgba(255, 255, 255, 0.08);
+            --input-border: rgba(255, 255, 255, 0.15);
+            --shadow-lg: 0 20px 60px rgba(0, 0, 0, 0.3);
+            --shadow-xl: 0 30px 80px rgba(0, 0, 0, 0.4);
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--dark-bg);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(102, 126, 234, 0.1) 0%, transparent 50%);
+            animation: rotate 30s linear infinite;
+            pointer-events: none;
+        }
+
+        @keyframes rotate {
+            from {
+                transform: rotate(0deg);
+            }
+
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .container {
+            max-width: 900px;
+            width: 100%;
+            position: relative;
+            z-index: 1;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+            animation: fadeInDown 0.6s ease-out;
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        h1 {
+            font-size: 3rem;
+            font-weight: 700;
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+            letter-spacing: -0.02em;
+        }
+
+        .subtitle {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+            font-weight: 400;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 24px;
+            padding: 2.5rem;
+            backdrop-filter: blur(20px);
+            box-shadow: var(--shadow-lg);
+            animation: fadeInUp 0.6s ease-out 0.2s both;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .form-group {
+            margin-bottom: 2rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.75rem;
+            font-weight: 600;
+            font-size: 0.95rem;
+            color: var(--text-primary);
+            letter-spacing: 0.01em;
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 120px;
+            padding: 1rem 1.25rem;
+            background: var(--input-bg);
+            border: 2px solid var(--input-border);
+            border-radius: 16px;
+            color: var(--text-primary);
+            font-family: 'Inter', sans-serif;
+            font-size: 1rem;
+            resize: vertical;
+            transition: all 0.3s ease;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            background: rgba(255, 255, 255, 0.1);
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+        }
+
+        textarea::placeholder {
+            color: var(--text-secondary);
+        }
+
+        input[type="number"] {
+            width: 100%;
+            padding: 1rem 1.25rem;
+            background: var(--input-bg);
+            border: 2px solid var(--input-border);
+            border-radius: 16px;
+            color: var(--text-primary);
+            font-family: 'Inter', sans-serif;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        input[type="number"]:focus {
+            outline: none;
+            border-color: #667eea;
+            background: rgba(255, 255, 255, 0.1);
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+        }
+
+        input[type="number"]::placeholder {
+            color: var(--text-secondary);
+        }
+
+        .slider-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+        }
+
+        .slider-container {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .slider-label-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.75rem;
+        }
+
+        .slider-label-row label {
+            margin-bottom: 0;
+        }
+
+        .slider-value {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            background: var(--input-bg);
+            padding: 0.25rem 0.75rem;
+            border-radius: 8px;
+            min-width: 60px;
+            text-align: center;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            height: 8px;
+            background: var(--input-bg);
+            border-radius: 8px;
+            outline: none;
+            -webkit-appearance: none;
+            appearance: none;
+            cursor: pointer;
+            position: relative;
+        }
+
+        input[type="range"]::-webkit-slider-track {
+            width: 100%;
+            height: 8px;
+            background: var(--input-bg);
+            border-radius: 8px;
+        }
+
+        input[type="range"]::-moz-range-track {
+            width: 100%;
+            height: 8px;
+            background: var(--input-bg);
+            border-radius: 8px;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            background: var(--primary-gradient);
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+            transition: all 0.3s ease;
+        }
+
+        input[type="range"]::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+            transition: all 0.3s ease;
+        }
+
+        input[type="range"]::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+            box-shadow: 0 6px 16px rgba(102, 126, 234, 0.6);
+        }
+
+        input[type="range"]::-moz-range-thumb:hover {
+            transform: scale(1.2);
+            box-shadow: 0 6px 16px rgba(102, 126, 234, 0.6);
+        }
+
+        input[type="range"]:focus::-webkit-slider-thumb {
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.2);
+        }
+
+        input[type="range"]:focus::-moz-range-thumb {
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.2);
+        }
+
+        @media (max-width: 640px) {
+            .slider-group {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+        }
+
+        input[type="number"]::placeholder {
+            color: var(--text-secondary);
+        }
+
+        .button-container {
+            display: flex;
+            gap: 1rem;
+        }
+
+        button {
+            flex: 1;
+            padding: 1rem 2rem;
+            font-size: 1rem;
+            font-weight: 600;
+            border: none;
+            border-radius: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Inter', sans-serif;
+            position: relative;
+            overflow: hidden;
+        }
+
+        button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateX(-100%);
+            transition: transform 0.3s ease;
+        }
+
+        button:hover::before {
+            transform: translateX(0);
+        }
+
+        #generateBtn {
+            background: var(--primary-gradient);
+            color: white;
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+        }
+
+        #generateBtn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 40px rgba(102, 126, 234, 0.4);
+        }
+
+        #generateBtn:active {
+            transform: translateY(0);
+        }
+
+        #generateBtn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        #clearBtn {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text-primary);
+            border: 2px solid var(--input-border);
+        }
+
+        #clearBtn:hover {
+            background: rgba(255, 255, 255, 0.15);
+            border-color: rgba(255, 255, 255, 0.25);
+        }
+
+        .progress-container {
+            margin-top: 2rem;
+            display: none;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        .progress-container.active {
+            display: block;
+        }
+
+        .progress-bar-wrapper {
+            background: var(--input-bg);
+            border-radius: 12px;
+            height: 12px;
+            overflow: hidden;
+            margin-bottom: 1rem;
+            position: relative;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: var(--success-gradient);
+            width: 0%;
+            transition: width 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .progress-bar::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            right: 0;
+            background: linear-gradient(90deg,
+                    transparent,
+                    rgba(255, 255, 255, 0.3),
+                    transparent);
+            animation: shimmer 2s infinite;
+        }
+
+        @keyframes shimmer {
+            0% {
+                transform: translateX(-100%);
+            }
+
+            100% {
+                transform: translateX(100%);
+            }
+        }
+
+        .progress-text {
+            text-align: center;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .result-container {
+            margin-top: 2rem;
+            display: none;
+            animation: fadeInUp 0.6s ease-out;
+        }
+
+        .result-container.active {
+            display: block;
+        }
+
+        .image-wrapper {
+            background: var(--input-bg);
+            border: 2px solid var(--input-border);
+            border-radius: 20px;
+            padding: 1rem;
+            text-align: center;
+            overflow: hidden;
+        }
+
+        #resultImage {
+            max-width: 100%;
+            height: auto;
+            border-radius: 12px;
+            box-shadow: var(--shadow-xl);
+            transition: transform 0.3s ease;
+        }
+
+        #resultImage:hover {
+            transform: scale(1.02);
+        }
+
+        .error-message {
+            background: rgba(245, 87, 108, 0.1);
+            border: 2px solid rgba(245, 87, 108, 0.3);
+            border-radius: 16px;
+            padding: 1.25rem;
+            margin-top: 1.5rem;
+            color: #ff6b6b;
+            display: none;
+            animation: shake 0.5s ease-out;
+        }
+
+        @keyframes shake {
+
+            0%,
+            100% {
+                transform: translateX(0);
+            }
+
+            25% {
+                transform: translateX(-10px);
+            }
+
+            75% {
+                transform: translateX(10px);
+            }
+        }
+
+        .error-message.active {
+            display: block;
+        }
+
+        .error-message strong {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-size: 1.05rem;
+        }
+
+        @media (max-width: 640px) {
+            body {
+                padding: 1rem;
+            }
+
+            h1 {
+                font-size: 2rem;
+            }
+
+            .card {
+                padding: 1.5rem;
+            }
+
+            .button-container {
+                flex-direction: column;
+            }
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-right: 8px;
+            vertical-align: middle;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Ollama Image Generator</h1>
+            <p class="subtitle">Transform your ideas into stunning AI-generated images</p>
+        </div>
+
+        <div class="card">
+            <form id="imageForm">
+                <div class="form-group">
+                    <label for="promptInput">Enter Your Prompt</label>
+                    <textarea id="promptInput"
+                        placeholder="Describe the image you want to generate... e.g., 'A serene mountain landscape at sunset with vibrant colors'"
+                        required></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="seedInput">Seed (0 for random)</label>
+                    <input type="number" id="seedInput" value="0" min="0" step="1" />
+                </div>
+
+                <div class="form-group">
+                    <div class="slider-group">
+                        <div class="slider-container">
+                            <div class="slider-label-row">
+                                <label for="widthSlider">Width</label>
+                                <span class="slider-value" id="widthValue">512</span>
+                            </div>
+                            <input type="range" id="widthSlider" min="512" max="2048" step="32" value="512" />
+                        </div>
+                        <div class="slider-container">
+                            <div class="slider-label-row">
+                                <label for="heightSlider">Height</label>
+                                <span class="slider-value" id="heightValue">512</span>
+                            </div>
+                            <input type="range" id="heightSlider" min="512" max="2048" step="32" value="512" />
+                        </div>
+                    </div>
+                </div>
+
+                <div class="button-container">
+                    <button type="submit" id="generateBtn">
+                        Generate Image
+                    </button>
+                    <button type="button" id="clearBtn">
+                        Clear
+                    </button>
+                </div>
+            </form>
+
+            <div class="progress-container" id="progressContainer">
+                <div class="progress-bar-wrapper">
+                    <div class="progress-bar" id="progressBar"></div>
+                </div>
+                <p class="progress-text" id="progressText">Initializing...</p>
+            </div>
+
+            <div class="error-message" id="errorMessage">
+                <strong>Error</strong>
+                <span id="errorText"></span>
+            </div>
+
+            <div class="result-container" id="resultContainer">
+                <div class="image-wrapper">
+                    <img id="resultImage" alt="Generated image" />
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const form = document.getElementById('imageForm');
+        const promptInput = document.getElementById('promptInput');
+        const seedInput = document.getElementById('seedInput');
+        const widthSlider = document.getElementById('widthSlider');
+        const heightSlider = document.getElementById('heightSlider');
+        const widthValue = document.getElementById('widthValue');
+        const heightValue = document.getElementById('heightValue');
+        const generateBtn = document.getElementById('generateBtn');
+        const clearBtn = document.getElementById('clearBtn');
+        const progressContainer = document.getElementById('progressContainer');
+        const progressBar = document.getElementById('progressBar');
+        const progressText = document.getElementById('progressText');
+        const resultContainer = document.getElementById('resultContainer');
+        const resultImage = document.getElementById('resultImage');
+        const errorMessage = document.getElementById('errorMessage');
+        const errorText = document.getElementById('errorText');
+
+        let isGenerating = false;
+
+        // Update slider value displays
+        widthSlider.addEventListener('input', (e) => {
+            widthValue.textContent = e.target.value;
+        });
+
+        heightSlider.addEventListener('input', (e) => {
+            heightValue.textContent = e.target.value;
+        });
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            if (isGenerating) return;
+
+            const prompt = promptInput.value.trim();
+            if (!prompt) return;
+
+            const seed = parseInt(seedInput.value) || 0;
+            const width = parseInt(widthSlider.value);
+            const height = parseInt(heightSlider.value);
+
+            await generateImage(prompt, seed, width, height);
+        });
+
+        clearBtn.addEventListener('click', () => {
+            promptInput.value = '';
+            seedInput.value = '0';
+            widthSlider.value = '512';
+            heightSlider.value = '512';
+            widthValue.textContent = '512';
+            heightValue.textContent = '512';
+            resultContainer.classList.remove('active');
+            errorMessage.classList.remove('active');
+            progressContainer.classList.remove('active');
+            progressBar.style.width = '0%';
+        });
+
+        async function generateImage(prompt, seed, width, height) {
+            isGenerating = true;
+            generateBtn.disabled = true;
+            generateBtn.innerHTML = '<span class="spinner"></span>Generating...';
+
+            // Hide previous results and errors
+            resultContainer.classList.remove('active');
+            errorMessage.classList.remove('active');
+
+            // Show progress
+            progressContainer.classList.add('active');
+            progressBar.style.width = '0%';
+            progressText.textContent = 'Initializing...';
+
+            try {
+                const response = await fetch('/generate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        model: 'x/z-image-turbo:bf16',
+                        prompt: prompt,
+                        suffix: "",
+                        system: "",
+                        template: "",
+                        options: null,
+                        seed: seed,
+                        width: width,
+                        height: height,
+                        steps: 12,
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+                let buffer = '';
+
+                while (true) {
+                    const { done, value } = await reader.read();
+
+                    if (done) break;
+
+                    buffer += decoder.decode(value, { stream: true });
+                    const lines = buffer.split('\n');
+
+                    // Process all complete lines
+                    for (let i = 0; i < lines.length - 1; i++) {
+                        const line = lines[i].trim();
+                        if (line) {
+                            try {
+                                const data = JSON.parse(line);
+                                handleStreamData(data);
+                            } catch (e) {
+                                console.error('Error parsing JSON:', e, 'Line:', line);
+                            }
+                        }
+                    }
+
+                    // Keep the last incomplete line in the buffer
+                    buffer = lines[lines.length - 1];
+                }
+
+                // Process any remaining data in buffer
+                if (buffer.trim()) {
+                    try {
+                        const data = JSON.parse(buffer);
+                        handleStreamData(data);
+                    } catch (e) {
+                        console.error('Error parsing final JSON:', e);
+                    }
+                }
+
+            } catch (error) {
+                showError(`Failed to generate image: ${error.message}`);
+                progressContainer.classList.remove('active');
+            } finally {
+                isGenerating = false;
+                generateBtn.disabled = false;
+                generateBtn.textContent = 'Generate Image';
+            }
+        }
+
+        function handleStreamData(data) {
+            if (data.done) {
+                if (data.image) {
+                    const imageBase64 = data.image;
+                    resultImage.src = `data:image/png;base64,${imageBase64}`;
+                    resultContainer.classList.add('active');
+                    progressContainer.classList.remove('active');
+                }
+                else {
+                    showError('Image data not found in response');
+                    progressContainer.classList.remove('active');
+                }
+            }
+            else if (data.completed) {
+                // Progress update
+                const responseText = data.completed;
+                progressText.textContent = `Running step ${data.completed} of ${data.total}`;
+            }
+        }
+
+        function showError(message) {
+            errorText.textContent = message;
+            errorMessage.classList.add('active');
+        }
+    </script>
+</body>
+
+</html>

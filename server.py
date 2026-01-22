@@ -40,7 +40,10 @@ class ProxyHandler(BaseHTTPRequestHandler):
                 # Read the request body
                 content_length = int(self.headers.get("Content-Length", 0))
                 body = self.rfile.read(content_length)
-                print(json.dumps(json.loads(body), indent=4), flush=True)
+                try:
+                    print(json.dumps(json.loads(body), indent=4), flush=True)
+                except json.JSONDecodeError:
+                    print(body.decode("utf-8", errors="replace"), flush=True)
                 
                 # Forward the request to Ollama
                 req = urllib.request.Request(
@@ -52,23 +55,36 @@ class ProxyHandler(BaseHTTPRequestHandler):
                 # Open connection to Ollama
                 with urllib.request.urlopen(req) as response:
                     # Send response headers
-                    self.send_response(200)
-                    self.send_header("Content-Type", "application/json")
-                    self.send_header("Transfer-Encoding", "chunked")
+                    self.send_response(response.status)
+                    content_type = response.headers.get("Content-Type", "application/x-ndjson")
+                    self.send_header("Content-Type", content_type)
                     self.send_header("Access-Control-Allow-Origin", "*")
                     self.send_header("Cache-Control", "no-cache")
                     self.send_header("X-Accel-Buffering", "no")
                     self.end_headers()
-                    
-                    # Stream the response back to the client with minimal buffering
-                    # Use very small buffer (1 byte) for immediate streaming
+
+                    # Stream line-delimited JSON to preserve progress updates
                     while True:
-                        chunk = response.read(1)
-                        if not chunk:
+                        line = response.readline()
+                        if not line:
                             break
-                        self.wfile.write(chunk)
+                        self.wfile.write(line)
                         self.wfile.flush()
-                        
+
+            except urllib.error.HTTPError as e:
+                error_body = e.read() if e.fp else b""
+                self.send_response(e.code)
+                self.send_header("Content-Type", e.headers.get("Content-Type", "application/json"))
+                self.send_header("Access-Control-Allow-Origin", "*")
+                self.end_headers()
+                if error_body:
+                    self.wfile.write(error_body)
+                else:
+                    error_msg = json.dumps({
+                        "error": f"Ollama error: {e.reason}"
+                    })
+                    self.wfile.write(error_msg.encode())
+
             except urllib.error.URLError as e:
                 error_msg = json.dumps({
                     "error": f"Failed to connect to Ollama: {str(e)}"

@@ -562,25 +562,34 @@
                 </div>
 
                 <div class="form-group">
-                    <label for="seedInput">Seed (0 for random)</label>
-                    <input type="number" id="seedInput" value="0" min="0" step="1" />
-                </div>
-
-                <div class="form-group">
                     <div class="slider-group">
                         <div class="slider-container">
                             <div class="slider-label-row">
                                 <label for="widthSlider">Width</label>
-                                <span class="slider-value" id="widthValue">512</span>
+                                <span class="slider-value" id="widthValue">1024</span>
                             </div>
-                            <input type="range" id="widthSlider" min="512" max="2048" step="32" value="512" />
+                            <input type="range" id="widthSlider" min="512" max="2048" step="16" value="1024" />
                         </div>
                         <div class="slider-container">
                             <div class="slider-label-row">
                                 <label for="heightSlider">Height</label>
-                                <span class="slider-value" id="heightValue">512</span>
+                                <span class="slider-value" id="heightValue">1024</span>
                             </div>
-                            <input type="range" id="heightSlider" min="512" max="2048" step="32" value="512" />
+                            <input type="range" id="heightSlider" min="512" max="2048" step="16" value="1024" />
+                        </div>
+                        <div class="slider-container">
+                            <div class="slider-label-row">
+                                <label for="seedInput">Seed</label>
+                                <span class="slider-value" id="seedValue">0</span>
+                            </div>
+                            <input type="range" id="seedInput" min="0" max="999999999999" step="1" value="0" />
+                        </div>
+                        <div class="slider-container">
+                            <div class="slider-label-row">
+                                <label for="stepsSlider">Steps</label>
+                                <span class="slider-value" id="stepsValue">12</span>
+                            </div>
+                            <input type="range" id="stepsSlider" min="4" max="30" step="1" value="12" />
                         </div>
                     </div>
                 </div>
@@ -621,8 +630,11 @@
         const seedInput = document.getElementById('seedInput');
         const widthSlider = document.getElementById('widthSlider');
         const heightSlider = document.getElementById('heightSlider');
+        const stepsSlider = document.getElementById('stepsSlider');
         const widthValue = document.getElementById('widthValue');
         const heightValue = document.getElementById('heightValue');
+        const seedValue = document.getElementById('seedValue');
+        const stepsValue = document.getElementById('stepsValue');
         const generateBtn = document.getElementById('generateBtn');
         const clearBtn = document.getElementById('clearBtn');
         const progressContainer = document.getElementById('progressContainer');
@@ -632,6 +644,10 @@
         const resultImage = document.getElementById('resultImage');
         const errorMessage = document.getElementById('errorMessage');
         const errorText = document.getElementById('errorText');
+
+        const STEPS_MIN = 4;
+        const STEPS_MAX = 30;
+        const STEPS_DEFAULT = 12;
 
         let isGenerating = false;
 
@@ -644,6 +660,21 @@
             heightValue.textContent = e.target.value;
         });
 
+        seedInput.addEventListener('input', (e) => {
+            seedValue.textContent = e.target.value || '0';
+        });
+
+        stepsSlider.min = STEPS_MIN;
+        stepsSlider.max = STEPS_MAX;
+        stepsSlider.value = STEPS_DEFAULT;
+        stepsValue.textContent = STEPS_DEFAULT;
+
+        stepsSlider.addEventListener('input', (e) => {
+            stepsValue.textContent = e.target.value;
+        });
+
+        seedValue.textContent = seedInput.value || '0';
+
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
 
@@ -655,8 +686,9 @@
             const seed = parseInt(seedInput.value) || 0;
             const width = parseInt(widthSlider.value);
             const height = parseInt(heightSlider.value);
+            const steps = parseInt(stepsSlider.value);
 
-            await generateImage(prompt, seed, width, height);
+            await generateImage(prompt, seed, width, height, steps);
         });
 
         clearBtn.addEventListener('click', () => {
@@ -666,13 +698,16 @@
             heightSlider.value = '512';
             widthValue.textContent = '512';
             heightValue.textContent = '512';
+            seedValue.textContent = '0';
+            stepsSlider.value = String(STEPS_DEFAULT);
+            stepsValue.textContent = String(STEPS_DEFAULT);
             resultContainer.classList.remove('active');
             errorMessage.classList.remove('active');
             progressContainer.classList.remove('active');
             progressBar.style.width = '0%';
         });
 
-        async function generateImage(prompt, seed, width, height) {
+        async function generateImage(prompt, seed, width, height, steps) {
             isGenerating = true;
             generateBtn.disabled = true;
             generateBtn.innerHTML = '<span class="spinner"></span>Generating...';
@@ -702,7 +737,7 @@
                         seed: seed,
                         width: width,
                         height: height,
-                        steps: 12,
+                        steps: steps,
                     })
                 });
 

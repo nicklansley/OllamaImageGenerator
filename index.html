@@ -1018,6 +1018,14 @@
 
         // Cache for history data to avoid repeated API calls
         let historyCache = [];
+        const historyDetailCache = new Map();
+
+        function getPromptText(settings) {
+            if (!settings || typeof settings.prompt !== 'string') {
+                return '';
+            }
+            return settings.prompt.trim();
+        }
 
         // Server API Functions (replacing local storage)
         async function getHistory() {
@@ -1050,6 +1058,7 @@
                     console.log(`Deleted history item: ${id}`);
                     // Remove from cache
                     historyCache = historyCache.filter(item => item.id !== id);
+                    historyDetailCache.delete(id);
                     await renderHistory();
                 } else {
                     console.error('Delete failed:', result.error);
@@ -1064,7 +1073,7 @@
         async function loadHistoryItem(id) {
             try {
                 // First check cache
-                let item = historyCache.find(h => h.id === id);
+                let item = historyDetailCache.get(id);
 
                 // If not in cache, fetch from server
                 if (!item) {
@@ -1073,23 +1082,36 @@
                         throw new Error(`HTTP error! status: ${response.status}`);
                     }
                     item = await response.json();
+                    historyDetailCache.set(id, item);
                 }
 
-                if (item && item.settings) {
+                if (item && item.image) {
                     // Restore all settings
-                    const settings = item.settings;
-                    modelSelect.value = settings.model;
-                    promptInput.value = settings.prompt;
-                    seedInput.value = settings.seed;
-                    widthSlider.value = settings.width;
-                    heightSlider.value = settings.height;
-                    stepsSlider.value = settings.steps;
+                    const settings = item.settings || {};
+                    if (settings.model) {
+                        modelSelect.value = settings.model;
+                    }
+                    if (typeof settings.prompt === 'string') {
+                        promptInput.value = settings.prompt;
+                    }
+                    if (typeof settings.seed !== 'undefined') {
+                        seedInput.value = settings.seed;
+                    }
+                    if (typeof settings.width !== 'undefined') {
+                        widthSlider.value = settings.width;
+                    }
+                    if (typeof settings.height !== 'undefined') {
+                        heightSlider.value = settings.height;
+                    }
+                    if (typeof settings.steps !== 'undefined') {
+                        stepsSlider.value = settings.steps;
+                    }
 
                     // Update display values
-                    seedValue.textContent = settings.seed;
-                    widthValue.textContent = settings.width;
-                    heightValue.textContent = settings.height;
-                    stepsValue.textContent = settings.steps;
+                    seedValue.textContent = seedInput.value || '0';
+                    widthValue.textContent = widthSlider.value;
+                    heightValue.textContent = heightSlider.value;
+                    stepsValue.textContent = stepsSlider.value;
 
                     // Display the image
                     resultImage.src = `data:image/png;base64,${item.image}`;
@@ -1100,6 +1122,33 @@
             } catch (error) {
                 console.error('Error loading history item:', error);
                 showError(`Failed to load image: ${error.message}`);
+            }
+        }
+
+        async function loadHistoryPreview(id, imgElement, infoElement) {
+            try {
+                let item = historyDetailCache.get(id);
+                if (!item) {
+                    const response = await fetch(`/history/${id}`);
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    item = await response.json();
+                    historyDetailCache.set(id, item);
+                }
+
+                if (item && item.image) {
+                    imgElement.src = `data:image/png;base64,${item.image}`;
+                }
+
+                if (infoElement && item && item.settings) {
+                    const promptText = getPromptText(item.settings);
+                    if (promptText) {
+                        infoElement.textContent = promptText.substring(0, 30) + '...';
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading history preview:', error);
             }
         }
 
@@ -1117,12 +1166,13 @@
                 historyItem.className = 'history-item';
 
                 const img = document.createElement('img');
-                img.src = `data:image/png;base64,${item.image}`;
-                img.alt = item.settings.prompt.substring(0, 50) + '...';
+                img.src = '';
+                const promptText = getPromptText(item.settings);
+                img.alt = promptText ? promptText.substring(0, 50) + '...' : 'History image';
 
                 const info = document.createElement('div');
                 info.className = 'history-item-info';
-                info.textContent = item.settings.prompt.substring(0, 30) + '...';
+                info.textContent = promptText ? promptText.substring(0, 30) + '...' : 'No prompt';
 
                 const deleteBtn = document.createElement('button');
                 deleteBtn.className = 'history-item-delete';
@@ -1141,6 +1191,10 @@
                 historyItem.appendChild(info);
                 historyItem.appendChild(deleteBtn);
                 historyList.appendChild(historyItem);
+
+                if (item.id) {
+                    loadHistoryPreview(item.id, img, info);
+                }
             });
         }
 
@@ -1220,6 +1274,7 @@
 
                         // Clear cache and refresh
                         historyCache = [];
+                        historyDetailCache.clear();
                         await renderHistory();
 
                         if (failCount > 0) {

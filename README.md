@@ -6,6 +6,13 @@ This project is a simple proxy server for the Ollama Image Generator, which serv
 - **`server.py`**: The backend server that handles API requests and serves the HTML interface.
 - **`index.html`**: The frontend interface for users to interact with the image generation functionality.
 
+## Prerequisites
+- Python 3.9 or later
+- Ollama CLI
+- (right now) macOS
+
+Whilst you can clone the repo, you only have to download *server.py* and *index.html* to use the application. 
+
 ## Architecture
 - The server listens on port **8080** and forwards requests to the Ollama API located at **`http://localhost:11434/api/generate`**.
 - The server acts as a proxy, forwarding requests from the HTML interface to the Ollama API and returning the generated images to the HTML interface in 'stream' format so that the progress of the image generation is displayed as it is being generated.

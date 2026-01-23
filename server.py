@@ -10,8 +10,9 @@ import urllib.request
 import urllib.error
 from pathlib import Path
 
-OLLAMA_API_URL = "http://localhost:11434/api/generate"
+OLLAMA_API_URL = "http://localhost:11434/api"
 PORT = 8080
+IMAGE_GEN_MODEL_LIST = ["x/z-image-turbo:bf16", "x/flux2-klein:latest"]
 
 
 class ProxyHandler(BaseHTTPRequestHandler):
@@ -30,6 +31,69 @@ class ProxyHandler(BaseHTTPRequestHandler):
                 self.wfile.write(content)
             except FileNotFoundError:
                 self.send_error(404, "index.html not found")
+        elif self.path == "/test.html":
+            try:
+                html_file = Path(__file__).parent / "test.html"
+                with open(html_file, "rb") as f:
+                    content = f.read()
+                
+                self.send_response(200)
+                self.send_header("Content-Type", "text/html; charset=utf-8")
+                self.send_header("Content-Length", str(len(content)))
+                self.end_headers()
+                self.wfile.write(content)
+            except FileNotFoundError:
+                self.send_error(404, "test.html not found")
+        elif self.path == "/models":
+            req = urllib.request.Request(
+                OLLAMA_API_URL + "/tags",
+                headers={"Content-Type": "application/json"}
+            )
+            try:
+                with urllib.request.urlopen(req) as response:
+                    data = json.loads(response.read().decode("utf-8"))
+                    # Filter models that have 'image' in their name
+                    image_gen_model_list = []
+                    for model in data["models"]:
+                        if model["name"] in IMAGE_GEN_MODEL_LIST:
+                            image_gen_model_list.append(model['name'])
+                    self.send_response(200)
+                    self.send_header("Content-Type", "application/json")
+                    self.send_header("Access-Control-Allow-Origin", "*")
+                    self.end_headers()
+                    self.wfile.write(json.dumps(image_gen_model_list).encode("utf-8"))
+            except urllib.error.HTTPError as e:
+                error_body = e.read() if e.fp else b""
+                self.send_response(e.code)
+                self.send_header("Content-Type", e.headers.get("Content-Type", "application/json"))
+                self.send_header("Access-Control-Allow-Origin", "*")
+                self.end_headers()
+                if error_body:
+                    self.wfile.write(error_body)
+                else:
+                    error_msg = json.dumps({
+                        "error": f"Ollama error: {e.reason}"
+                    })
+                    self.wfile.write(error_msg.encode())
+            except urllib.error.URLError as e:
+                error_msg = json.dumps({
+                    "error": f"Failed to connect to Ollama: {str(e)}"
+                })
+                self.send_response(502)
+                self.send_header("Content-Type", "application/json")
+                self.send_header("Access-Control-Allow-Origin", "*")
+                self.end_headers()
+                self.wfile.write(error_msg.encode())
+            except Exception as e:
+                error_msg = json.dumps({
+                    "error": f"Server error: {str(e)}"
+                })
+                self.send_response(500)
+                self.send_header("Content-Type", "application/json")
+                self.send_header("Access-Control-Allow-Origin", "*")
+                self.end_headers()
+                self.wfile.write(error_msg.encode())
+
         else:
             self.send_error(404, "File not found")
 
@@ -47,7 +111,7 @@ class ProxyHandler(BaseHTTPRequestHandler):
                 
                 # Forward the request to Ollama
                 req = urllib.request.Request(
-                    OLLAMA_API_URL,
+                    OLLAMA_API_URL + "/generate",
                     data=body,
                     headers={"Content-Type": "application/json"}
                 )

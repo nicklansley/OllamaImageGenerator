@@ -10,19 +10,32 @@ This project is a simple proxy server for the Ollama Image Generator, which serv
 - The server listens on port **8080** and forwards requests to the Ollama API located at **`http://localhost:11434/api/generate`**.
 - The server acts as a proxy, forwarding requests from the HTML interface to the Ollama API and returning the generated images to the HTML interface in 'stream' format so that the progress of the image generation is displayed as it is being generated.
 - The HTML interface is served directly from the server, allowing users to generate images through a web interface.
+- **Model Selection**: Users can select from available image generation models via a dropdown menu. The selected model is automatically saved to the browser's localStorage and will be remembered on subsequent visits.
+- The `/models` API endpoint returns a filtered list of available image generation models from the Ollama API.
 - Tested to work with Python 3.9 and later
 
 ## To set up and start the server
 - Clone the repository.
-- From the terminal run: <pre>ollama pull x/z-image-turbo:bf16</pre>
+- From the terminal run: 
+<pre>ollama pull x/z-image-turbo:bf16
+ollama pull x/flux2-klein:latest</pre>
 - Run `python3 server.py` in the terminal.
 - Open `http://localhost:8080` in your web browser.
+- Adjust the controls then click 'Generate' to generate an image. You will see message 'Step N of X' as the image is being generated.
+- Right-click the image and select 'Save image as...' to save the image (or drag and drop the image into a folder to save it)
 
 ## Key Files
 - **`server.py`**: Main server logic and API handling.
 - **`index.html`**: User interface for image generation.
 
+## Maintenance Notes
+- server.py filters the model list to only include models capable of image generation. You will need to add any new models to the IMAGE_GEN_MODEL_LIST in server.py as well as use 'ollama pull model_name' to pull the model from the Ollama registry.
+
 ## Author
 - Nick Lansley
 - [GitHub](https://github.com/nicklansley)
+
+## License
+- MIT License
+
 

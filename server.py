@@ -294,7 +294,6 @@ class ProxyHandler(BaseHTTPRequestHandler):
                             metadata = {
                                 "id": timestamp,
                                 "timestamp": datetime.now().isoformat(),
-                                "image": final_image_data,  # Store base64 for compatibility
                                 "settings": {
                                     "model": request_data.get("model", ""),
                                     "prompt": request_data.get("prompt", ""),

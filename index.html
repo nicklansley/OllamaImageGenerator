@@ -1015,96 +1015,96 @@
 
         let isGenerating = false;
         const MODEL_STORAGE_KEY = 'ollama_selected_model';
-        const HISTORY_STORAGE_KEY = 'ollama_image_history';
 
-        // Local Storage Functions
-        function saveToHistory(imageData, settings) {
+        // Cache for history data to avoid repeated API calls
+        let historyCache = [];
+
+        // Server API Functions (replacing local storage)
+        async function getHistory() {
             try {
-                const history = getHistory();
-                const historyItem = {
-                    id: Date.now(),
-                    timestamp: new Date().toISOString(),
-                    image: imageData,
-                    settings: settings
-                };
-
-                // Add to beginning of array
-                history.unshift(historyItem);
-
-                // Limit history to 50 items to avoid storage issues
-                if (history.length > 50) {
-                    history.pop();
+                const response = await fetch('/history/index');
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
                 }
-
-                localStorage.setItem(HISTORY_STORAGE_KEY, JSON.stringify(history));
-                renderHistory();
-            } catch (error) {
-                console.error('Error saving to history:', error);
-                // If storage is full, try removing oldest items
-                if (error.name === 'QuotaExceededError') {
-                    try {
-                        const history = getHistory();
-                        // Keep only the 10 most recent items
-                        const trimmedHistory = history.slice(0, 10);
-                        localStorage.setItem(HISTORY_STORAGE_KEY, JSON.stringify(trimmedHistory));
-                        renderHistory();
-                    } catch (e) {
-                        console.error('Failed to trim history:', e);
-                    }
-                }
-            }
-        }
-
-        function getHistory() {
-            try {
-                const history = localStorage.getItem(HISTORY_STORAGE_KEY);
-                return history ? JSON.parse(history) : [];
+                const history = await response.json();
+                historyCache = history; // Cache the results
+                return history;
             } catch (error) {
                 console.error('Error loading history:', error);
                 return [];
             }
         }
 
-        function deleteHistoryItem(id) {
+        async function deleteHistoryItem(id) {
             try {
-                const history = getHistory();
-                const filtered = history.filter(item => item.id !== id);
-                localStorage.setItem(HISTORY_STORAGE_KEY, JSON.stringify(filtered));
-                renderHistory();
+                const response = await fetch(`/history/${id}`, {
+                    method: 'DELETE'
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const result = await response.json();
+                if (result.SUCCESS) {
+                    console.log(`Deleted history item: ${id}`);
+                    // Remove from cache
+                    historyCache = historyCache.filter(item => item.id !== id);
+                    await renderHistory();
+                } else {
+                    console.error('Delete failed:', result.error);
+                    showError(`Failed to delete image: ${result.error}`);
+                }
             } catch (error) {
                 console.error('Error deleting history item:', error);
+                showError(`Failed to delete image: ${error.message}`);
             }
         }
 
-        function loadHistoryItem(id) {
-            const history = getHistory();
-            const item = history.find(h => h.id === id);
-            if (item) {
-                // Restore all settings
-                const settings = item.settings;
-                modelSelect.value = settings.model;
-                promptInput.value = settings.prompt;
-                seedInput.value = settings.seed;
-                widthSlider.value = settings.width;
-                heightSlider.value = settings.height;
-                stepsSlider.value = settings.steps;
+        async function loadHistoryItem(id) {
+            try {
+                // First check cache
+                let item = historyCache.find(h => h.id === id);
 
-                // Update display values
-                seedValue.textContent = settings.seed;
-                widthValue.textContent = settings.width;
-                heightValue.textContent = settings.height;
-                stepsValue.textContent = settings.steps;
+                // If not in cache, fetch from server
+                if (!item) {
+                    const response = await fetch(`/history/${id}`);
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    item = await response.json();
+                }
 
-                // Display the image
-                resultImage.src = `data:image/png;base64,${item.image}`;
-                resultContainer.classList.add('active');
-                errorMessage.classList.remove('active');
-                progressContainer.classList.remove('active');
+                if (item && item.settings) {
+                    // Restore all settings
+                    const settings = item.settings;
+                    modelSelect.value = settings.model;
+                    promptInput.value = settings.prompt;
+                    seedInput.value = settings.seed;
+                    widthSlider.value = settings.width;
+                    heightSlider.value = settings.height;
+                    stepsSlider.value = settings.steps;
+
+                    // Update display values
+                    seedValue.textContent = settings.seed;
+                    widthValue.textContent = settings.width;
+                    heightValue.textContent = settings.height;
+                    stepsValue.textContent = settings.steps;
+
+                    // Display the image
+                    resultImage.src = `data:image/png;base64,${item.image}`;
+                    resultContainer.classList.add('active');
+                    errorMessage.classList.remove('active');
+                    progressContainer.classList.remove('active');
+                }
+            } catch (error) {
+                console.error('Error loading history item:', error);
+                showError(`Failed to load image: ${error.message}`);
             }
         }
 
-        function renderHistory() {
-            const history = getHistory();
+        async function renderHistory() {
+            const history = await getHistory();
             historyList.innerHTML = '';
 
             if (history.length === 0) {
@@ -1179,16 +1179,55 @@
         });
 
         // Delete all history function
-        function deleteAllHistory() {
+        async function deleteAllHistory() {
             showModal(
                 'Delete All History',
                 'This is irreversible! Proceed?',
-                () => {
+                async () => {
                     try {
-                        localStorage.removeItem(HISTORY_STORAGE_KEY);
-                        renderHistory();
+                        // Get all history items
+                        const history = await getHistory();
+
+                        if (history.length === 0) {
+                            console.log('No history to delete');
+                            return;
+                        }
+
+                        // Delete each item
+                        let successCount = 0;
+                        let failCount = 0;
+
+                        for (const item of history) {
+                            try {
+                                const response = await fetch(`/history/${item.id}`, {
+                                    method: 'DELETE'
+                                });
+                                const result = await response.json();
+
+                                if (result.SUCCESS) {
+                                    successCount++;
+                                } else {
+                                    failCount++;
+                                    console.error(`Failed to delete ${item.id}:`, result.error);
+                                }
+                            } catch (error) {
+                                failCount++;
+                                console.error(`Error deleting ${item.id}:`, error);
+                            }
+                        }
+
+                        console.log(`Deleted ${successCount} items, ${failCount} failed`);
+
+                        // Clear cache and refresh
+                        historyCache = [];
+                        await renderHistory();
+
+                        if (failCount > 0) {
+                            showError(`Deleted ${successCount} items, but ${failCount} failed`);
+                        }
                     } catch (error) {
                         console.error('Error deleting all history:', error);
+                        showError(`Failed to delete history: ${error.message}`);
                     }
                 }
             );
@@ -1403,7 +1442,8 @@
             }
         }
 
-        function handleStreamData(data) {
+
+        async function handleStreamData(data) {
             if (data.done) {
                 if (data.image) {
                     const imageBase64 = data.image;
@@ -1411,16 +1451,11 @@
                     resultContainer.classList.add('active');
                     progressContainer.classList.remove('active');
 
-                    // Save to history
-                    const settings = {
-                        model: modelSelect.value,
-                        prompt: promptInput.value,
-                        seed: parseInt(seedInput.value) || 0,
-                        width: parseInt(widthSlider.value),
-                        height: parseInt(heightSlider.value),
-                        steps: parseInt(stepsSlider.value)
-                    };
-                    saveToHistory(imageBase64, settings);
+                    // Refresh history from server (server saves automatically)
+                    // Wait a bit for the server to finish saving
+                    setTimeout(async () => {
+                        await renderHistory();
+                    }, 500);
                 }
                 else {
                     showError('Image data not found in response');

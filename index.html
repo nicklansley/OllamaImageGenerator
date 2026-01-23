@@ -38,11 +38,11 @@
             color: var(--text-primary);
             min-height: 100vh;
             display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 2rem;
+            align-items: stretch;
+            justify-content: flex-start;
+            padding: 0;
             position: relative;
-            overflow-x: hidden;
+            overflow: hidden;
         }
 
         body::before {
@@ -67,11 +67,104 @@
             }
         }
 
+        .sidebar {
+            width: 280px;
+            background: rgba(255, 255, 255, 0.03);
+            border-right: 1px solid var(--card-border);
+            padding: 1.5rem;
+            overflow-y: auto;
+            height: 100vh;
+            flex-shrink: 0;
+        }
+
+        .sidebar h2 {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: var(--text-primary);
+            text-align: center;
+        }
+
+        .history-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .history-item {
+            background: var(--card-bg);
+            border: 2px solid var(--card-border);
+            border-radius: 12px;
+            padding: 0.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .history-item:hover {
+            border-color: #667eea;
+            transform: translateX(5px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+
+        .history-item img {
+            width: 100%;
+            height: auto;
+            border-radius: 8px;
+            display: block;
+        }
+
+        .history-item-info {
+            margin-top: 0.5rem;
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .history-item-delete {
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            background: rgba(245, 87, 108, 0.8);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            font-size: 14px;
+            line-height: 1;
+        }
+
+        .history-item:hover .history-item-delete {
+            opacity: 1;
+        }
+
+        .history-item-delete:hover {
+            background: rgba(245, 87, 108, 1);
+        }
+
+        .main-content {
+            flex: 1;
+            overflow-y: auto;
+            height: 100vh;
+            padding: 2rem;
+        }
+
         .container {
             max-width: 900px;
             width: 100%;
             position: relative;
             z-index: 1;
+            margin: 0 auto;
         }
 
         .header {
@@ -541,6 +634,19 @@
 
         @media (max-width: 640px) {
             body {
+                flex-direction: column;
+            }
+
+            .sidebar {
+                width: 100%;
+                height: auto;
+                max-height: 40vh;
+                border-right: none;
+                border-bottom: 1px solid var(--card-border);
+            }
+
+            .main-content {
+                height: auto;
                 padding: 1rem;
             }
 
@@ -578,86 +684,96 @@
 </head>
 
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>Ollama Image Generator</h1>
-            <p class="subtitle">Transform your ideas into stunning AI-generated images</p>
+    <div class="sidebar">
+        <h2>Image History</h2>
+        <div class="history-list" id="historyList">
+            <!-- History items will be added here dynamically -->
         </div>
+    </div>
 
-        <div class="card">
-            <form id="imageForm">
-                <div class="form-group">
-                    <label for="modelSelect">Select Model</label>
-                    <select id="modelSelect" required>
-                        <option value="">Loading models...</option>
-                    </select>
-                </div>
+    <div class="main-content">
+        <div class="container">
+            <div class="header">
+                <h1>Ollama Image Generator</h1>
+                <p class="subtitle">Transform your ideas into AI-generated images using Ollama running on your own
+                    computer</p>
+            </div>
 
-                <div class="form-group">
-                    <label for="promptInput">Enter Your Prompt</label>
-                    <textarea id="promptInput"
-                        placeholder="Describe the image you want to generate... e.g., 'A serene mountain landscape at sunset with vibrant colors'"
-                        required></textarea>
-                </div>
+            <div class="card">
+                <form id="imageForm">
+                    <div class="form-group">
+                        <label for="modelSelect">Select Model</label>
+                        <select id="modelSelect" required>
+                            <option value="">Loading models...</option>
+                        </select>
+                    </div>
 
-                <div class="form-group">
-                    <div class="slider-group">
-                        <div class="slider-container">
-                            <div class="slider-label-row">
-                                <label for="widthSlider">Width</label>
-                                <span class="slider-value" id="widthValue">1024</span>
+                    <div class="form-group">
+                        <label for="promptInput">Enter Your Prompt</label>
+                        <textarea id="promptInput"
+                            placeholder="Describe the image you want to generate... e.g., 'A serene mountain landscape at sunset with vibrant colors'"
+                            required></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="slider-group">
+                            <div class="slider-container">
+                                <div class="slider-label-row">
+                                    <label for="widthSlider">Width</label>
+                                    <span class="slider-value" id="widthValue">1024</span>
+                                </div>
+                                <input type="range" id="widthSlider" min="512" max="2048" step="16" value="1024" />
                             </div>
-                            <input type="range" id="widthSlider" min="512" max="2048" step="16" value="1024" />
-                        </div>
-                        <div class="slider-container">
-                            <div class="slider-label-row">
-                                <label for="heightSlider">Height</label>
-                                <span class="slider-value" id="heightValue">1024</span>
+                            <div class="slider-container">
+                                <div class="slider-label-row">
+                                    <label for="heightSlider">Height</label>
+                                    <span class="slider-value" id="heightValue">1024</span>
+                                </div>
+                                <input type="range" id="heightSlider" min="512" max="2048" step="16" value="1024" />
                             </div>
-                            <input type="range" id="heightSlider" min="512" max="2048" step="16" value="1024" />
-                        </div>
-                        <div class="slider-container">
-                            <div class="slider-label-row">
-                                <label for="seedInput">Seed</label>
-                                <span class="slider-value" id="seedValue">0</span>
+                            <div class="slider-container">
+                                <div class="slider-label-row">
+                                    <label for="seedInput">Seed</label>
+                                    <span class="slider-value" id="seedValue">0</span>
+                                </div>
+                                <input type="range" id="seedInput" min="0" max="999999999999" step="1" value="0" />
                             </div>
-                            <input type="range" id="seedInput" min="0" max="999999999999" step="1" value="0" />
-                        </div>
-                        <div class="slider-container">
-                            <div class="slider-label-row">
-                                <label for="stepsSlider">Steps</label>
-                                <span class="slider-value" id="stepsValue">12</span>
+                            <div class="slider-container">
+                                <div class="slider-label-row">
+                                    <label for="stepsSlider">Steps</label>
+                                    <span class="slider-value" id="stepsValue">12</span>
+                                </div>
+                                <input type="range" id="stepsSlider" min="4" max="30" step="1" value="12" />
                             </div>
-                            <input type="range" id="stepsSlider" min="4" max="30" step="1" value="12" />
                         </div>
                     </div>
+
+                    <div class="button-container">
+                        <button type="submit" id="generateBtn">
+                            Generate Image
+                        </button>
+                        <button type="button" id="clearBtn">
+                            Clear
+                        </button>
+                    </div>
+                </form>
+
+                <div class="progress-container" id="progressContainer">
+                    <div class="progress-bar-wrapper">
+                        <div class="progress-bar" id="progressBar"></div>
+                    </div>
+                    <p class="progress-text" id="progressText">Initializing...</p>
                 </div>
 
-                <div class="button-container">
-                    <button type="submit" id="generateBtn">
-                        Generate Image
-                    </button>
-                    <button type="button" id="clearBtn">
-                        Clear
-                    </button>
+                <div class="error-message" id="errorMessage">
+                    <strong>Error</strong>
+                    <span id="errorText"></span>
                 </div>
-            </form>
 
-            <div class="progress-container" id="progressContainer">
-                <div class="progress-bar-wrapper">
-                    <div class="progress-bar" id="progressBar"></div>
-                </div>
-                <p class="progress-text" id="progressText">Initializing...</p>
-            </div>
-
-            <div class="error-message" id="errorMessage">
-                <strong>Error</strong>
-                <span id="errorText"></span>
-            </div>
-
-            <div class="result-container" id="resultContainer">
-                <div class="image-wrapper">
-                    <img id="resultImage" alt="Generated image" />
+                <div class="result-container" id="resultContainer">
+                    <div class="image-wrapper">
+                        <img id="resultImage" alt="Generated image" />
+                    </div>
                 </div>
             </div>
         </div>
@@ -684,6 +800,7 @@
         const resultImage = document.getElementById('resultImage');
         const errorMessage = document.getElementById('errorMessage');
         const errorText = document.getElementById('errorText');
+        const historyList = document.getElementById('historyList');
 
         const STEPS_MIN = 4;
         const STEPS_MAX = 30;
@@ -691,6 +808,137 @@
 
         let isGenerating = false;
         const MODEL_STORAGE_KEY = 'ollama_selected_model';
+        const HISTORY_STORAGE_KEY = 'ollama_image_history';
+
+        // Local Storage Functions
+        function saveToHistory(imageData, settings) {
+            try {
+                const history = getHistory();
+                const historyItem = {
+                    id: Date.now(),
+                    timestamp: new Date().toISOString(),
+                    image: imageData,
+                    settings: settings
+                };
+
+                // Add to beginning of array
+                history.unshift(historyItem);
+
+                // Limit history to 50 items to avoid storage issues
+                if (history.length > 50) {
+                    history.pop();
+                }
+
+                localStorage.setItem(HISTORY_STORAGE_KEY, JSON.stringify(history));
+                renderHistory();
+            } catch (error) {
+                console.error('Error saving to history:', error);
+                // If storage is full, try removing oldest items
+                if (error.name === 'QuotaExceededError') {
+                    try {
+                        const history = getHistory();
+                        // Keep only the 10 most recent items
+                        const trimmedHistory = history.slice(0, 10);
+                        localStorage.setItem(HISTORY_STORAGE_KEY, JSON.stringify(trimmedHistory));
+                        renderHistory();
+                    } catch (e) {
+                        console.error('Failed to trim history:', e);
+                    }
+                }
+            }
+        }
+
+        function getHistory() {
+            try {
+                const history = localStorage.getItem(HISTORY_STORAGE_KEY);
+                return history ? JSON.parse(history) : [];
+            } catch (error) {
+                console.error('Error loading history:', error);
+                return [];
+            }
+        }
+
+        function deleteHistoryItem(id) {
+            try {
+                const history = getHistory();
+                const filtered = history.filter(item => item.id !== id);
+                localStorage.setItem(HISTORY_STORAGE_KEY, JSON.stringify(filtered));
+                renderHistory();
+            } catch (error) {
+                console.error('Error deleting history item:', error);
+            }
+        }
+
+        function loadHistoryItem(id) {
+            const history = getHistory();
+            const item = history.find(h => h.id === id);
+            if (item) {
+                // Restore all settings
+                const settings = item.settings;
+                modelSelect.value = settings.model;
+                promptInput.value = settings.prompt;
+                seedInput.value = settings.seed;
+                widthSlider.value = settings.width;
+                heightSlider.value = settings.height;
+                stepsSlider.value = settings.steps;
+
+                // Update display values
+                seedValue.textContent = settings.seed;
+                widthValue.textContent = settings.width;
+                heightValue.textContent = settings.height;
+                stepsValue.textContent = settings.steps;
+
+                // Display the image
+                resultImage.src = `data:image/png;base64,${item.image}`;
+                resultContainer.classList.add('active');
+                errorMessage.classList.remove('active');
+                progressContainer.classList.remove('active');
+            }
+        }
+
+        function renderHistory() {
+            const history = getHistory();
+            historyList.innerHTML = '';
+
+            if (history.length === 0) {
+                historyList.innerHTML = '<p style="text-align: center; color: var(--text-secondary); font-size: 0.9rem; margin-top: 2rem;">No images yet</p>';
+                return;
+            }
+
+            history.forEach(item => {
+                const historyItem = document.createElement('div');
+                historyItem.className = 'history-item';
+
+                const img = document.createElement('img');
+                img.src = `data:image/png;base64,${item.image}`;
+                img.alt = item.settings.prompt.substring(0, 50) + '...';
+
+                const info = document.createElement('div');
+                info.className = 'history-item-info';
+                info.textContent = item.settings.prompt.substring(0, 30) + '...';
+
+                const deleteBtn = document.createElement('button');
+                deleteBtn.className = 'history-item-delete';
+                deleteBtn.innerHTML = '×';
+                deleteBtn.onclick = (e) => {
+                    e.stopPropagation();
+                    deleteHistoryItem(item.id);
+                };
+
+                // Double-click to load
+                historyItem.addEventListener('dblclick', () => {
+                    loadHistoryItem(item.id);
+                });
+
+                historyItem.appendChild(img);
+                historyItem.appendChild(info);
+                historyItem.appendChild(deleteBtn);
+                historyList.appendChild(historyItem);
+            });
+        }
+
+        // Load history on page load
+        renderHistory();
 
         // Load models on page load
         async function loadModels() {
@@ -892,6 +1140,17 @@
                     resultImage.src = `data:image/png;base64,${imageBase64}`;
                     resultContainer.classList.add('active');
                     progressContainer.classList.remove('active');
+
+                    // Save to history
+                    const settings = {
+                        model: modelSelect.value,
+                        prompt: promptInput.value,
+                        seed: parseInt(seedInput.value) || 0,
+                        width: parseInt(widthSlider.value),
+                        height: parseInt(heightSlider.value),
+                        steps: parseInt(stepsSlider.value)
+                    };
+                    saveToHistory(imageBase64, settings);
                 }
                 else {
                     showError('Image data not found in response');

@@ -23,6 +23,7 @@ ollama pull x/flux2-klein:latest</pre>
 - Open `http://localhost:8080` in your web browser.
 - Adjust the controls then click 'Generate' to generate an image. You will see message 'Step N of X' as the image is being generated.
 - Right-click the image and select 'Save image as...' to save the image (or drag and drop the image into a folder to save it)
+- Images are alo saved to a 'history' list on the left side of the interface. Double-click an image to load it into the interface, or single-click the image then click the 'x' button to remove it from the history. The history is saved to your web browser'slocalStorage and will be remembered on subsequent visits.
 
 ## Key Files
 - **`server.py`**: Main server logic and API handling.

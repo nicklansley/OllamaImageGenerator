@@ -237,7 +237,9 @@ class ProxyHandler(BaseHTTPRequestHandler):
                     self.end_headers()
                     self.wfile.write(error_msg.encode())
                     return
-                
+
+                print(f'Calling Ollama API with: {json.dumps(request_data, indent=4)}')
+
                 # Forward the request to Ollama
                 req = urllib.request.Request(
                     OLLAMA_API_URL + "/generate",

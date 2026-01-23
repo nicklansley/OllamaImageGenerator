@@ -417,6 +417,28 @@
             box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.2);
         }
 
+        .checkbox-container {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+        }
+
+        .checkbox-container input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+            accent-color: #667eea;
+        }
+
+        .checkbox-container label {
+            margin: 0;
+            font-size: 0.85rem;
+            font-weight: 500;
+            cursor: pointer;
+            user-select: none;
+        }
+
         @media (max-width: 640px) {
             .slider-group {
                 grid-template-columns: 1fr;
@@ -736,7 +758,11 @@
                                     <label for="seedInput">Seed</label>
                                     <span class="slider-value" id="seedValue">0</span>
                                 </div>
-                                <input type="range" id="seedInput" min="0" max="999999999999" step="1" value="0" />
+                                <input type="range" id="seedInput" min="1" max="999999999999" step="1" value="42" />
+                                <div class="checkbox-container">
+                                    <input type="checkbox" id="randomSeedCheckbox" />
+                                    <label for="randomSeedCheckbox">Random</label>
+                                </div>
                             </div>
                             <div class="slider-container">
                                 <div class="slider-label-row">
@@ -801,6 +827,7 @@
         const errorMessage = document.getElementById('errorMessage');
         const errorText = document.getElementById('errorText');
         const historyList = document.getElementById('historyList');
+        const randomSeedCheckbox = document.getElementById('randomSeedCheckbox');
 
         const STEPS_MIN = 4;
         const STEPS_MAX = 30;
@@ -1022,7 +1049,16 @@
             const prompt = promptInput.value.trim();
             if (!prompt) return;
 
-            const seed = parseInt(seedInput.value) || 0;
+            // Generate random seed if checkbox is checked
+            let seed = parseInt(seedInput.value) || 0;
+            if (randomSeedCheckbox.checked) {
+                const minSeed = parseInt(seedInput.min);
+                const maxSeed = parseInt(seedInput.max);
+                seed = Math.floor(Math.random() * (maxSeed - minSeed + 1)) + minSeed;
+                seedInput.value = seed;
+                seedValue.textContent = seed;
+            }
+
             const width = parseInt(widthSlider.value);
             const height = parseInt(heightSlider.value);
             const steps = parseInt(stepsSlider.value);
@@ -1040,6 +1076,7 @@
             seedValue.textContent = '0';
             stepsSlider.value = String(STEPS_DEFAULT);
             stepsValue.textContent = String(STEPS_DEFAULT);
+            randomSeedCheckbox.checked = false;
             resultContainer.classList.remove('active');
             errorMessage.classList.remove('active');
             progressContainer.classList.remove('active');

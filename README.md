@@ -29,7 +29,7 @@ ollama pull x/flux2-klein:latest</pre>
 - Right-click the image and select 'Save image as...' to save the image 
 - You can also drag and drop the image from the browser window into a folder to save it.
 
-# Image History
+## Image History
 - Images are saved to a 'history' list on the left side of the interface. 
 - Double-click an image to load it into the interface along with the prompt and settings used to create it.
 - Single-click the image then click the 'x' button to delete it from history (deletion is irreversible!).

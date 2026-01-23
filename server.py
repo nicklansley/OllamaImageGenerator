@@ -238,12 +238,17 @@ class ProxyHandler(BaseHTTPRequestHandler):
                     self.wfile.write(error_msg.encode())
                     return
 
+                # Convert any newline or carriage returns in the prompt to spaces.
+                request_data['prompt'] = request_data['prompt'].replace('\n', ' ').replace('\r', ' ')
+
+                reformatted_body = json.dumps(request_data)
+
                 print(f'Calling Ollama API with: {json.dumps(request_data, indent=4)}')
 
                 # Forward the request to Ollama
                 req = urllib.request.Request(
                     OLLAMA_API_URL + "/generate",
-                    data=body,
+                    data=reformatted_body.encode("utf-8"),
                     headers={"Content-Type": "application/json"}
                 )
                 

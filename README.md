@@ -20,10 +20,20 @@ This project is a simple proxy server for the Ollama Image Generator, which serv
 <pre>ollama pull x/z-image-turbo:bf16
 ollama pull x/flux2-klein:latest</pre>
 - Run `python3 server.py` in the terminal.
+
+
+## To use the application
 - Open `http://localhost:8080` in your web browser.
-- Type your prompt into the 'Prompt' field, adjust the controls (click 'Random' to generate a random seed) then click 'Generate' to generate an image. You will see message 'Step N of X' as the image is being generated.
-- Right-click the image and select 'Save image as...' to save the image (or drag and drop the image into a folder to save it)
-- Images are alo saved to a 'history' list on the left side of the interface. Double-click an image to load it into the interface, or single-click the image then click the 'x' button to remove it from the history. The history is saved to your web browser'slocalStorage and will be remembered on subsequent visits.
+- Type your prompt into the 'Prompt' field, adjust the controls then click 'Generate Image' to generate an image. You will see message 'Step N of X' as the image is being generated.
+- If you set the 'Random' option to checked, the application will generate a random seed when you click 'Generate Image'. 
+- Right-click the image and select 'Save image as...' to save the image 
+- You can also drag and drop the image from the browser window into a folder to save it.
+
+# Image History
+- Images are saved to a 'history' list on the left side of the interface. 
+- Double-click an image to load it into the interface along with the prompt and settings used to create it.
+- Single-click the image then click the 'x' button to delete it from history (deletion is irreversible!).
+The history is saved to your web browser's local storage and will be remembered on subsequent visits (if you use the same browser!).
 
 ## Key Files
 - **`server.py`**: Main server logic and API handling.

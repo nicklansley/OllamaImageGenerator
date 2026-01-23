@@ -314,11 +314,71 @@ class ProxyHandler(BaseHTTPRequestHandler):
         else:
             self.send_error(404, "Endpoint not found")
 
+    def do_DELETE(self):
+        """Handle DELETE requests for history items"""
+        if self.path.startswith("/history/"):
+            # Extract image name from path (e.g., /history/20260123123453)
+            image_name = self.path.split("/history/")[1]
+            
+            # Remove .png extension if provided
+            if image_name.endswith(".png"):
+                image_name = image_name[:-4]
+            
+            try:
+                ensure_history_dir()
+                image_path = HISTORY_DIR / f"{image_name}.png"
+                json_path = HISTORY_DIR / f"{image_name}.json"
+                
+                # Check if files exist
+                image_exists = image_path.exists()
+                json_exists = json_path.exists()
+                
+                if not image_exists and not json_exists:
+                    response_data = {
+                        "SUCCESS": False,
+                        "error": f"Image not found: {image_name}"
+                    }
+                    self.send_response(404)
+                    self.send_header("Content-Type", "application/json")
+                    self.send_header("Access-Control-Allow-Origin", "*")
+                    self.end_headers()
+                    self.wfile.write(json.dumps(response_data).encode("utf-8"))
+                    return
+                
+                # Delete both files if they exist
+                if image_exists:
+                    image_path.unlink()
+                if json_exists:
+                    json_path.unlink()
+                
+                response_data = {"SUCCESS": True}
+                self.send_response(200)
+                self.send_header("Content-Type", "application/json")
+                self.send_header("Access-Control-Allow-Origin", "*")
+                self.end_headers()
+                self.wfile.write(json.dumps(response_data).encode("utf-8"))
+                
+                print(f"✓ Deleted history item: {image_name}", flush=True)
+                
+            except Exception as e:
+                response_data = {
+                    "SUCCESS": False,
+                    "error": str(e)
+                }
+                self.send_response(500)
+                self.send_header("Content-Type", "application/json")
+                self.send_header("Access-Control-Allow-Origin", "*")
+                self.end_headers()
+                self.wfile.write(json.dumps(response_data).encode("utf-8"))
+                print(f"Error deleting history item {image_name}: {e}", flush=True)
+        else:
+            self.send_error(404, "Endpoint not found")
+
     def do_OPTIONS(self):
         """Handle CORS preflight requests"""
         self.send_response(200)
         self.send_header("Access-Control-Allow-Origin", "*")
-        self.send_header("Access-Control-Allow-Methods", "POST, GET, OPTIONS")
+        self.send_header("Access-Control-Allow-Methods", "POST, GET, DELETE, OPTIONS")
         self.send_header("Access-Control-Allow-Headers", "Content-Type")
         self.end_headers()
 

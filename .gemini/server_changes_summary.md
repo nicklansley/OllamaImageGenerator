@@ -96,6 +96,37 @@ curl http://localhost:8080/history/index
 curl http://localhost:8080/history/20260123141028
 ```
 
+### Test DELETE `/history/<image_name>`:
+```bash
+# Delete a specific image
+curl -X DELETE http://localhost:8080/history/20260123141028
+
+# Expected success response:
+# {"SUCCESS": true}
+
+# Expected failure response (image not found):
+# {"SUCCESS": false, "error": "Image not found: 20260123141028"}
+```
+
+## New Feature: Delete Individual History Images
+
+### 6. **Added DELETE `/history/<image_name>` Endpoint**
+- **Endpoint**: `DELETE /history/20260123141028` (example)
+- **Action**: Deletes both the `.png` and `.json` files for the specified image
+- **Accepts**: Image name with or without `.png` extension
+- **Response Format**:
+  - **Success**: `{"SUCCESS": true}`
+  - **Failure**: `{"SUCCESS": false, "error": "error message"}`
+- **HTTP Status Codes**:
+  - `200`: Successful deletion
+  - `404`: Image not found
+  - `500`: Server error during deletion
+- **Logging**: Logs successful deletions and errors to console
+
+### CORS Support
+- Updated `do_OPTIONS` to include `DELETE` in allowed methods
+- All endpoints support CORS with `Access-Control-Allow-Origin: *`
+
 ## Notes
 - The server must be restarted for changes to take effect
 - The history directory will be created automatically on first image generation

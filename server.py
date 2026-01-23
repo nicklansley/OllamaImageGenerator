@@ -58,7 +58,7 @@ class ProxyHandler(BaseHTTPRequestHandler):
                 html_file = Path(__file__).parent / "index.html"
                 with open(html_file, "rb") as f:
                     content = f.read()
-                
+
                 self.send_response(200)
                 self.send_header("Content-Type", "text/html; charset=utf-8")
                 self.send_header("Content-Length", str(len(content)))
@@ -71,7 +71,7 @@ class ProxyHandler(BaseHTTPRequestHandler):
                 html_file = Path(__file__).parent / "test.html"
                 with open(html_file, "rb") as f:
                     content = f.read()
-                
+
                 self.send_response(200)
                 self.send_header("Content-Type", "text/html; charset=utf-8")
                 self.send_header("Content-Length", str(len(content)))
@@ -134,7 +134,7 @@ class ProxyHandler(BaseHTTPRequestHandler):
             try:
                 ensure_history_dir()
                 history_items = []
-                
+
                 # Find all .json files in history directory
                 for json_file in sorted(HISTORY_DIR.glob("*.json"), reverse=True):
                     try:
@@ -146,7 +146,7 @@ class ProxyHandler(BaseHTTPRequestHandler):
                     except Exception as e:
                         print(f"Error reading {json_file}: {e}")
                         continue
-                
+
                 self.send_response(200)
                 self.send_header("Content-Type", "application/json")
                 self.send_header("Access-Control-Allow-Origin", "*")
@@ -168,7 +168,7 @@ class ProxyHandler(BaseHTTPRequestHandler):
             if not image_name:
                 self.send_error(400, "Invalid history id")
                 return
-            
+
             try:
                 ensure_history_dir()
                 image_path = resolve_history_path(image_name, ".png")
@@ -176,21 +176,21 @@ class ProxyHandler(BaseHTTPRequestHandler):
                 if not image_path or not json_path:
                     self.send_error(400, "Invalid history path")
                     return
-                
+
                 if not image_path.exists():
                     self.send_error(404, f"Image not found: {image_name}")
                     return
-                
+
                 # Read the image and encode to base64
                 with open(image_path, 'rb') as f:
                     image_data = base64.b64encode(f.read()).decode('utf-8')
-                
+
                 # Read the JSON metadata if it exists
                 metadata = {}
                 if json_path.exists():
                     with open(json_path, 'r') as f:
                         metadata = json.load(f)
-                
+
                 # Return in the same format as local storage
                 response_data = {
                     "image": image_data,
@@ -198,7 +198,7 @@ class ProxyHandler(BaseHTTPRequestHandler):
                     "timestamp": metadata.get("timestamp", ""),
                     "id": metadata.get("id", image_name)
                 }
-                
+
                 self.send_response(200)
                 self.send_header("Content-Type", "application/json")
                 self.send_header("Access-Control-Allow-Origin", "*")
@@ -251,7 +251,7 @@ class ProxyHandler(BaseHTTPRequestHandler):
                     data=reformatted_body.encode("utf-8"),
                     headers={"Content-Type": "application/json"}
                 )
-                
+
                 # Open connection to Ollama
                 with urllib.request.urlopen(req) as response:
                     # Send response headers
@@ -270,7 +270,7 @@ class ProxyHandler(BaseHTTPRequestHandler):
                         line = response.readline()
                         if not line:
                             break
-                        
+
                         # Try to parse the line to check if it contains the final image
                         try:
                             line_data = json.loads(line)
@@ -278,25 +278,25 @@ class ProxyHandler(BaseHTTPRequestHandler):
                                 final_image_data = line_data.get('image')
                         except Exception as e:
                             print(f"Error parsing stream line: {e}", flush=True)
-                        
+
                         self.wfile.write(line)
                         self.wfile.flush()
-                    
+
                     # Save to history if we got an image
                     if final_image_data:
                         try:
                             ensure_history_dir()
-                            
+
                             # Generate filename with timestamp
                             timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
                             image_filename = f"{timestamp}.png"
                             json_filename = f"{timestamp}.json"
-                            
+
                             # Save the image
                             image_path = HISTORY_DIR / image_filename
                             with open(image_path, 'wb') as f:
                                 f.write(base64.b64decode(final_image_data))
-                            
+
                             # Prepare metadata matching the local storage format
                             metadata = {
                                 "id": timestamp,
@@ -310,12 +310,12 @@ class ProxyHandler(BaseHTTPRequestHandler):
                                     "steps": request_data.get("steps", 12)
                                 }
                             }
-                            
+
                             # Save the metadata
                             json_path = HISTORY_DIR / json_filename
                             with open(json_path, 'w') as f:
                                 json.dump(metadata, f, indent=2)
-                            
+
                             print(f"✓ Saved image to history: {image_filename}", flush=True)
                         except Exception as e:
                             print(f"Error saving to history: {e}", flush=True)
@@ -343,7 +343,7 @@ class ProxyHandler(BaseHTTPRequestHandler):
                 self.send_header("Access-Control-Allow-Origin", "*")
                 self.end_headers()
                 self.wfile.write(error_msg.encode())
-                
+
             except Exception as e:
                 error_msg = json.dumps({
                     "error": f"Server error: {str(e)}"
@@ -372,7 +372,7 @@ class ProxyHandler(BaseHTTPRequestHandler):
                 self.end_headers()
                 self.wfile.write(json.dumps(response_data).encode("utf-8"))
                 return
-            
+
             try:
                 ensure_history_dir()
                 image_path = resolve_history_path(image_name, ".png")
@@ -388,11 +388,11 @@ class ProxyHandler(BaseHTTPRequestHandler):
                     self.end_headers()
                     self.wfile.write(json.dumps(response_data).encode("utf-8"))
                     return
-                
+
                 # Check if files exist
                 image_exists = image_path.exists()
                 json_exists = json_path.exists()
-                
+
                 if not image_exists and not json_exists:
                     response_data = {
                         "SUCCESS": False,
@@ -404,22 +404,22 @@ class ProxyHandler(BaseHTTPRequestHandler):
                     self.end_headers()
                     self.wfile.write(json.dumps(response_data).encode("utf-8"))
                     return
-                
+
                 # Delete both files if they exist
                 if image_exists:
                     image_path.unlink()
                 if json_exists:
                     json_path.unlink()
-                
+
                 response_data = {"SUCCESS": True}
                 self.send_response(200)
                 self.send_header("Content-Type", "application/json")
                 self.send_header("Access-Control-Allow-Origin", "*")
                 self.end_headers()
                 self.wfile.write(json.dumps(response_data).encode("utf-8"))
-                
+
                 print(f"✓ Deleted history item: {image_name}", flush=True)
-                
+
             except Exception as e:
                 response_data = {
                     "SUCCESS": False,
@@ -450,12 +450,12 @@ class ProxyHandler(BaseHTTPRequestHandler):
 def main():
     server_address = ("", PORT)
     httpd = ThreadingHTTPServer(server_address, ProxyHandler)
-    
+
     print(f"🚀 Ollama Image Generator Server")
     print(f"📡 Server running on http://localhost:{PORT}")
     print(f"🔗 Proxying to Ollama at {OLLAMA_API_URL}")
     print(f"Press Ctrl+C to stop\n")
-    
+
     try:
         httpd.serve_forever()
     except KeyboardInterrupt:

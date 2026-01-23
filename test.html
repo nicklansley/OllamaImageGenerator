@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Model Selection Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: #1a1a2e;
+            color: white;
+        }
+
+        .test-section {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            margin: 10px 0;
+            border-radius: 8px;
+        }
+
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            cursor: pointer;
+        }
+
+        #output {
+            background: #000;
+            padding: 10px;
+            margin-top: 10px;
+            border-radius: 4px;
+            font-family: monospace;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Model Selection & localStorage Test</h1>
+
+    <div class="test-section">
+        <h2>1. Test /models API</h2>
+        <button onclick="testModelsAPI()">Fetch Models</button>
+        <div id="modelsOutput"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>2. Test localStorage</h2>
+        <button onclick="saveToLocalStorage()">Save Test Model</button>
+        <button onclick="loadFromLocalStorage()">Load from localStorage</button>
+        <button onclick="clearLocalStorage()">Clear localStorage</button>
+        <div id="storageOutput"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>3. Full Integration Test</h2>
+        <select id="modelSelect" style="padding: 10px; width: 300px;">
+            <option value="">Loading...</option>
+        </select>
+        <button onclick="loadModelsIntoSelect()">Load Models into Select</button>
+        <div id="selectOutput"></div>
+    </div>
+
+    <script>
+        const MODEL_STORAGE_KEY = 'ollama_selected_model';
+
+        async function testModelsAPI() {
+            const output = document.getElementById('modelsOutput');
+            try {
+                const response = await fetch('/models');
+                const models = await response.json();
+                output.innerHTML = `<div id="output">
+                    <strong>Success!</strong><br>
+                    Status: ${response.status}<br>
+                    Models: ${JSON.stringify(models, null, 2)}
+                </div>`;
+            } catch (error) {
+                output.innerHTML = `<div id="output" style="color: red;">
+                    <strong>Error:</strong> ${error.message}
+                </div>`;
+            }
+        }
+
+        function saveToLocalStorage() {
+            const testModel = 'x/z-image-turbo:bf16';
+            localStorage.setItem(MODEL_STORAGE_KEY, testModel);
+            const output = document.getElementById('storageOutput');
+            output.innerHTML = `<div id="output">
+                <strong>Saved to localStorage:</strong><br>
+                Key: ${MODEL_STORAGE_KEY}<br>
+                Value: ${testModel}
+            </div>`;
+        }
+
+        function loadFromLocalStorage() {
+            const savedModel = localStorage.getItem(MODEL_STORAGE_KEY);
+            const output = document.getElementById('storageOutput');
+            output.innerHTML = `<div id="output">
+                <strong>Loaded from localStorage:</strong><br>
+                Key: ${MODEL_STORAGE_KEY}<br>
+                Value: ${savedModel || '(not set)'}
+            </div>`;
+        }
+
+        function clearLocalStorage() {
+            localStorage.removeItem(MODEL_STORAGE_KEY);
+            const output = document.getElementById('storageOutput');
+            output.innerHTML = `<div id="output">
+                <strong>Cleared localStorage</strong><br>
+                Key: ${MODEL_STORAGE_KEY}
+            </div>`;
+        }
+
+        async function loadModelsIntoSelect() {
+            const modelSelect = document.getElementById('modelSelect');
+            const output = document.getElementById('selectOutput');
+
+            try {
+                const response = await fetch('/models');
+                const models = await response.json();
+
+                // Clear and populate select
+                modelSelect.innerHTML = '';
+                models.forEach(model => {
+                    const option = document.createElement('option');
+                    option.value = model;
+                    option.textContent = model;
+                    modelSelect.appendChild(option);
+                });
+
+                // Load saved model from localStorage
+                const savedModel = localStorage.getItem(MODEL_STORAGE_KEY);
+                if (savedModel && models.includes(savedModel)) {
+                    modelSelect.value = savedModel;
+                    output.innerHTML = `<div id="output">
+                        <strong>Success!</strong><br>
+                        Loaded ${models.length} models<br>
+                        Selected model from localStorage: ${savedModel}
+                    </div>`;
+                } else {
+                    modelSelect.value = models[0];
+                    output.innerHTML = `<div id="output">
+                        <strong>Success!</strong><br>
+                        Loaded ${models.length} models<br>
+                        No saved preference, defaulted to: ${models[0]}
+                    </div>`;
+                }
+
+                // Add change listener
+                modelSelect.addEventListener('change', () => {
+                    localStorage.setItem(MODEL_STORAGE_KEY, modelSelect.value);
+                    output.innerHTML = `<div id="output">
+                        <strong>Model changed!</strong><br>
+                        Saved to localStorage: ${modelSelect.value}
+                    </div>`;
+                });
+
+            } catch (error) {
+                output.innerHTML = `<div id="output" style="color: red;">
+                    <strong>Error:</strong> ${error.message}
+                </div>`;
+            }
+        }
+    </script>
+</body>
+
+</html>

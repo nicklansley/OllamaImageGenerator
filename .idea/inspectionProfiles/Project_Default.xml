@@ -1,0 +1,46 @@
+<component name="InspectionProjectProfileManager">
+  <profile version="1.0">
+    <option name="myName" value="Project Default" />
+    <inspection_tool class="PyPackageRequirementsInspection" enabled="true" level="WARNING" enabled_by_default="true">
+      <option name="ignoredPackages">
+        <list>
+          <option value="comfyui-frontend-package" />
+          <option value="comfyui-workflow-templates" />
+          <option value="comfyui-embedded-docs" />
+          <option value="torch" />
+          <option value="torchsde" />
+          <option value="torchvision" />
+          <option value="torchaudio" />
+          <option value="numpy" />
+          <option value="einops" />
+          <option value="transformers" />
+          <option value="tokenizers" />
+          <option value="sentencepiece" />
+          <option value="safetensors" />
+          <option value="aiohttp" />
+          <option value="yarl" />
+          <option value="pyyaml" />
+          <option value="Pillow" />
+          <option value="scipy" />
+          <option value="tqdm" />
+          <option value="psutil" />
+          <option value="alembic" />
+          <option value="SQLAlchemy" />
+          <option value="av" />
+          <option value="comfy-kitchen" />
+          <option value="kornia" />
+          <option value="spandrel" />
+          <option value="pydantic" />
+          <option value="pydantic-settings" />
+        </list>
+      </option>
+    </inspection_tool>
+    <inspection_tool class="PyUnresolvedReferencesInspection" enabled="true" level="WARNING" enabled_by_default="true">
+      <option name="ignoredIdentifiers">
+        <list>
+          <option value="types.NoneType.*" />
+        </list>
+      </option>
+    </inspection_tool>
+  </profile>
+</component>

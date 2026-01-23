@@ -29,7 +29,7 @@ ollama pull x/flux2-klein:latest</pre>
 - **`index.html`**: User interface for image generation.
 
 ## Maintenance Notes
-- server.py filters the model list to only include models capable of image generation. You will need to add any new models to the IMAGE_GEN_MODEL_LIST in server.py as well as use 'ollama pull model_name' to pull the model from the Ollama registry.
+- server.py filters the model list to only include models capable of image generation. You will need to add any new models to the IMAGE_GEN_MODEL_LIST in server.py as well as use 'ollama pull model_name' to pull the model from the Ollama registry. Only successfully pulled models will be included in the model list on the web interface.
 
 ## Author
 - Nick Lansley

@@ -85,6 +85,32 @@
             text-align: center;
         }
 
+        .delete-all-btn {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            background: rgba(245, 87, 108, 0.15);
+            border: 2px solid rgba(245, 87, 108, 0.3);
+            border-radius: 12px;
+            color: #ff6b6b;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 1rem;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .delete-all-btn:hover {
+            background: rgba(245, 87, 108, 0.25);
+            border-color: rgba(245, 87, 108, 0.5);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(245, 87, 108, 0.3);
+        }
+
+        .delete-all-btn:active {
+            transform: translateY(0);
+        }
+
         .history-list {
             display: flex;
             flex-direction: column;
@@ -200,6 +226,12 @@
             color: var(--text-secondary);
             font-size: 1.1rem;
             font-weight: 400;
+        }
+
+        .historysubtitle {
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+            font-weight: 200;
         }
 
         .card {
@@ -702,12 +734,142 @@
                 transform: rotate(360deg);
             }
         }
+
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(8px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 24px;
+            padding: 2rem;
+            max-width: 400px;
+            width: 90%;
+            backdrop-filter: blur(20px);
+            box-shadow: var(--shadow-xl);
+            animation: modalSlideIn 0.3s ease-out;
+            position: relative;
+        }
+
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px) scale(0.95);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .modal-header {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+
+        .modal-body {
+            color: var(--text-secondary);
+            font-size: 1rem;
+            line-height: 1.6;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .modal-btn {
+            flex: 1;
+            padding: 0.875rem 1.5rem;
+            font-size: 0.95rem;
+            font-weight: 600;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Inter', sans-serif;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .modal-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateX(-100%);
+            transition: transform 0.3s ease;
+        }
+
+        .modal-btn:hover::before {
+            transform: translateX(0);
+        }
+
+        .modal-btn-cancel {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text-primary);
+            border: 2px solid var(--input-border);
+        }
+
+        .modal-btn-cancel:hover {
+            background: rgba(255, 255, 255, 0.15);
+            border-color: rgba(255, 255, 255, 0.25);
+            transform: translateY(-2px);
+        }
+
+        .modal-btn-confirm {
+            background: var(--secondary-gradient);
+            color: white;
+            box-shadow: 0 10px 30px rgba(245, 87, 108, 0.3);
+        }
+
+        .modal-btn-confirm:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 40px rgba(245, 87, 108, 0.4);
+        }
+
+        .modal-btn:active {
+            transform: translateY(0);
+        }
     </style>
 </head>
 
 <body>
     <div class="sidebar">
         <h2>Image History</h2>
+        <ul class="historysubtitle">
+            <li>Double click an image to load it and its creation settings into the main window.</li>
+            <li>Right click an image then click the red 'x' button to delete it forever.
+            </li>
+        </ul>
+        <p class="historysubtitle">&nbsp;</p>
+        <button class="delete-all-btn" id="deleteAllBtn">Delete All History</button>
         <div class="history-list" id="historyList">
             <!-- History items will be added here dynamically -->
         </div>
@@ -805,6 +967,18 @@
         </div>
     </div>
 
+    <!-- Confirmation Modal -->
+    <div class="modal-overlay" id="confirmModal">
+        <div class="modal-content">
+            <div class="modal-header" id="modalHeader">Confirm Action</div>
+            <div class="modal-body" id="modalBody">Are you sure?</div>
+            <div class="modal-buttons">
+                <button class="modal-btn modal-btn-cancel" id="modalCancelBtn">Cancel</button>
+                <button class="modal-btn modal-btn-confirm" id="modalConfirmBtn">Confirm</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         const form = document.getElementById('imageForm');
         const modelSelect = document.getElementById('modelSelect');
@@ -828,6 +1002,12 @@
         const errorText = document.getElementById('errorText');
         const historyList = document.getElementById('historyList');
         const randomSeedCheckbox = document.getElementById('randomSeedCheckbox');
+        const deleteAllBtn = document.getElementById('deleteAllBtn');
+        const confirmModal = document.getElementById('confirmModal');
+        const modalHeader = document.getElementById('modalHeader');
+        const modalBody = document.getElementById('modalBody');
+        const modalCancelBtn = document.getElementById('modalCancelBtn');
+        const modalConfirmBtn = document.getElementById('modalConfirmBtn');
 
         const STEPS_MIN = 4;
         const STEPS_MAX = 30;
@@ -963,6 +1143,59 @@
                 historyList.appendChild(historyItem);
             });
         }
+
+        // Modal utility functions
+        function showModal(title, message, onConfirm) {
+            modalHeader.textContent = title;
+            modalBody.textContent = message;
+            confirmModal.classList.add('active');
+
+            // Remove any existing listeners
+            const newConfirmBtn = modalConfirmBtn.cloneNode(true);
+            modalConfirmBtn.parentNode.replaceChild(newConfirmBtn, modalConfirmBtn);
+            const newCancelBtn = modalCancelBtn.cloneNode(true);
+            modalCancelBtn.parentNode.replaceChild(newCancelBtn, modalCancelBtn);
+
+            // Add new listeners
+            newConfirmBtn.addEventListener('click', () => {
+                confirmModal.classList.remove('active');
+                if (onConfirm) onConfirm();
+            });
+
+            newCancelBtn.addEventListener('click', () => {
+                confirmModal.classList.remove('active');
+            });
+
+            // Update references
+            window.modalConfirmBtn = newConfirmBtn;
+            window.modalCancelBtn = newCancelBtn;
+        }
+
+        // Close modal when clicking outside
+        confirmModal.addEventListener('click', (e) => {
+            if (e.target === confirmModal) {
+                confirmModal.classList.remove('active');
+            }
+        });
+
+        // Delete all history function
+        function deleteAllHistory() {
+            showModal(
+                'Delete All History',
+                'This is irreversible! Proceed?',
+                () => {
+                    try {
+                        localStorage.removeItem(HISTORY_STORAGE_KEY);
+                        renderHistory();
+                    } catch (error) {
+                        console.error('Error deleting all history:', error);
+                    }
+                }
+            );
+        }
+
+        // Delete all button event listener
+        deleteAllBtn.addEventListener('click', deleteAllHistory);
 
         // Load history on page load
         renderHistory();

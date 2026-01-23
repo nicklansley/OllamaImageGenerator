@@ -33,6 +33,7 @@ ollama pull x/flux2-klein:latest</pre>
 - Images are saved to a 'history' list on the left side of the interface. 
 - Double-click an image to load it into the interface along with the prompt and settings used to create it.
 - Single-click the image then click the 'x' button to delete it from history (deletion is irreversible!).
+- Click the 'Delete All History' button to delete all images from history (deletion is irreversible!).
 The history is saved to your web browser's local storage and will be remembered on subsequent visits (if you use the same browser!).
 
 ## Key Files

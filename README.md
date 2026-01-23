@@ -31,10 +31,11 @@ ollama pull x/flux2-klein:latest</pre>
 
 ## Image History
 - Images are saved to a 'history' list on the left side of the interface. 
+- The history is saved to your web browser's local storage and will be remembered on subsequent visits (if you use the same browser).
 - Double-click an image to load it into the interface along with the prompt and settings used to create it.
-- Single-click the image then click the 'x' button to delete it from history (deletion is irreversible!).
-- Click the 'Delete All History' button to delete all images from history (deletion is irreversible!).
-The history is saved to your web browser's local storage and will be remembered on subsequent visits (if you use the same browser!).
+- Single-click the image then click the 'x' button to delete it forever from history.
+- Click the 'Delete All History' button to delete all images from history forever.
+
 
 ## Key Files
 - **`server.py`**: Main server logic and API handling.

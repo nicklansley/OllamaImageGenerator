@@ -8,7 +8,7 @@ This project is a simple proxy server for the Ollama Image Generator, which serv
 
 ## Prerequisites
 - Python 3.9 or later
-- Ollama CLI
+- Ollama CLI - *ensure you have the latest version of Ollama installed <pre>ollama --version</pre> should be at least '0.15.0'*
 - (right now) macOS
 
 Whilst you can clone the repo, you only have to download <a href="https://raw.githubusercontent.com/nicklansley/OllamaImageGenerator/refs/heads/main/server.py">server.py</a> and <a href="https://raw.githubusercontent.com/nicklansley/OllamaImageGenerator/refs/heads/main/index.html">index.html</a> to the same folder to use the application. 

@@ -41,7 +41,7 @@ ollama pull x/flux2-klein:latest
 
 ## To set up and start the server
 - Clone the repository - OR - just download <a href="https://raw.githubusercontent.com/nicklansley/OllamaImageGenerator/refs/heads/main/server.py">server.py</a> and <a href="https://raw.githubusercontent.com/nicklansley/OllamaImageGenerator/refs/heads/main/index.html">index.html</a> to the same folder (<-- links to raw source files).
-- From the terminal run at least one of these commands to pull the models you want to use: 
+- From the terminal run at least one of the above `ollama pull` commands to pull the model(s) you want to use.
 - Run `python3 server.py` in the terminal.
 
 

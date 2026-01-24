@@ -18,7 +18,7 @@ Whilst you can clone the repo, you only have to download <a href="https://raw.gi
 - The server acts as a proxy, forwarding requests from the HTML interface to the Ollama API and returning the generated images to the HTML interface in 'stream' format so that the progress of the image generation is displayed as it is being generated.
 - The HTML interface is served directly from the server, allowing users to generate images through a web interface.
 - **Model Selection**: Users can select from available image generation models via a dropdown menu. The selected model is automatically saved to the browser's localStorage and will be remembered on subsequent visits.
-- **Image History**: All generated images are automatically saved to the server's `history/` folder, providing persistent storage across browser sessions and unlimited capacity.
+- **Image History**: All generated images are automatically saved to the server's `history/` folder created as a sub-folder to the folder where you run server.py, providing persistent storage across browser sessions and unlimited capacity.
 - The `/models` API endpoint returns a filtered list of available image generation models from the Ollama API.
 - Tested to work with Python 3.9 and later
 

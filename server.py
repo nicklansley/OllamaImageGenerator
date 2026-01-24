@@ -16,7 +16,14 @@ import re
 
 OLLAMA_API_URL = "http://localhost:11434/api"
 PORT = 8080
-IMAGE_GEN_MODEL_LIST = ["x/z-image-turbo:bf16", "x/flux2-klein:latest"]
+IMAGE_GEN_MODEL_LIST = [
+    "x/z-image-turbo:bf16",
+    "x/z-image-turbo:fp8",
+    "x/z-image-turbo:latest",
+    "x/flux2-klein:4b",
+    "x/flux2-klein:9b",
+    "x/flux2-klein:latest"
+]
 HISTORY_DIR = Path(__file__).parent / "history"
 HISTORY_ID_PATTERN = re.compile(r"[A-Za-z0-9_-]+")
 

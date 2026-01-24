@@ -22,11 +22,26 @@ Whilst you can clone the repo, you only have to download <a href="https://raw.gi
 - The `/models` API endpoint returns a filtered list of available image generation models from the Ollama API.
 - Tested to work with Python 3.9 and later
 
+
+## Choose one or more models to download.
+At the time of writing the model choices are these. Your choice will depend the size of your VRAM / Unified RAM.
+Follow each link to see the available model sizes.
+- https://ollama.com/x/flux2-klein
+- https://ollama.com/x/z-image-turbo
+
+Examples:
+<pre>
+ollama pull x/z-image-turbo:bf16
+ollama pull x/z-image-turbo:pf8
+ollama pull x/z-image-turbo:latest
+ollama pull x/flux2-klein:4b
+ollama pull x/flux2-klein:9b
+ollama pull x/flux2-klein:latest
+</pre>
+
 ## To set up and start the server
 - Clone the repository - OR - just download <a href="https://raw.githubusercontent.com/nicklansley/OllamaImageGenerator/refs/heads/main/server.py">server.py</a> and <a href="https://raw.githubusercontent.com/nicklansley/OllamaImageGenerator/refs/heads/main/index.html">index.html</a> to the same folder (<-- links to raw source files).
-- From the terminal run: 
-<pre>ollama pull x/z-image-turbo:bf16
-ollama pull x/flux2-klein:latest</pre>
+- From the terminal run at least one of these commands to pull the models you want to use: 
 - Run `python3 server.py` in the terminal.
 
 

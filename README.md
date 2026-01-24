@@ -11,7 +11,7 @@ This project is a simple proxy server for the Ollama Image Generator, which serv
 - Ollama CLI
 - (right now) macOS
 
-Whilst you can clone the repo, you only have to download *server.py* and *index.html* to use the application. 
+Whilst you can clone the repo, you only have to download <a href="https://raw.githubusercontent.com/nicklansley/OllamaImageGenerator/refs/heads/main/server.py">server.py</a> and <a href="https://raw.githubusercontent.com/nicklansley/OllamaImageGenerator/refs/heads/main/index.html">index.html</a> to the same folder to use the application. 
 
 ## Architecture
 - The server listens on port **8080** and forwards requests to the Ollama API located at **`http://localhost:11434/api/generate`**.
@@ -23,7 +23,7 @@ Whilst you can clone the repo, you only have to download *server.py* and *index.
 - Tested to work with Python 3.9 and later
 
 ## To set up and start the server
-- Clone the repository.
+- Clone the repository - OR - just download <a href="https://raw.githubusercontent.com/nicklansley/OllamaImageGenerator/refs/heads/main/server.py">server.py</a> and <a href="https://raw.githubusercontent.com/nicklansley/OllamaImageGenerator/refs/heads/main/index.html">index.html</a> to the same folder (<-- links to raw source files).
 - From the terminal run: 
 <pre>ollama pull x/z-image-turbo:bf16
 ollama pull x/flux2-klein:latest</pre>

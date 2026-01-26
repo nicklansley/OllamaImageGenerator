@@ -15,6 +15,7 @@ import os
 import re
 
 OLLAMA_API_URL = "http://localhost:11434/api"
+OLLAMA_LOG_LOCATION = "~/.ollama/logs/app.log" # Location of Ollama Log on MacOS - change for Windows and Linux if different!
 PORT = 8080
 IMAGE_GEN_MODEL_LIST = [
     "x/z-image-turbo:bf16",
@@ -26,6 +27,25 @@ IMAGE_GEN_MODEL_LIST = [
 ]
 HISTORY_DIR = Path(__file__).parent / "history"
 HISTORY_ID_PATTERN = re.compile(r"[A-Za-z0-9_-]+")
+LOG_MESSAGE_PATTERN = r'msg="([^"]*)"'
+
+
+def get_latest_log_message(level):
+    """Return the latest log message for a given level, or None if not found."""
+    log_path = Path(OLLAMA_LOG_LOCATION).expanduser()
+    if not log_path.exists():
+        return None
+
+    try:
+        log_text = log_path.read_text(encoding="utf-8", errors="replace")
+    except Exception:
+        return None
+
+    pattern = re.compile(rf"level={re.escape(level)}[^\n]*?{LOG_MESSAGE_PATTERN}")
+    matches = list(pattern.finditer(log_text))
+    if not matches:
+        return None
+    return matches[-1].group(1)
 
 
 def ensure_history_dir():
@@ -135,6 +155,27 @@ class ProxyHandler(BaseHTTPRequestHandler):
                 self.send_header("Access-Control-Allow-Origin", "*")
                 self.end_headers()
                 self.wfile.write(error_msg.encode())
+
+        elif self.path == "/ollamalog/warn":
+            message = get_latest_log_message("WARN")
+            if message is None:
+                error_msg = json.dumps({
+                    "error": "No WARN entry found"
+                })
+                self.send_response(404)
+                self.send_header("Content-Type", "application/json")
+                self.send_header("Access-Control-Allow-Origin", "*")
+                self.end_headers()
+                self.wfile.write(error_msg.encode())
+            else:
+                response_data = json.dumps({
+                    "message": message
+                })
+                self.send_response(200)
+                self.send_header("Content-Type", "application/json")
+                self.send_header("Access-Control-Allow-Origin", "*")
+                self.end_headers()
+                self.wfile.write(response_data.encode("utf-8"))
 
         elif self.path == "/history/index":
             # Return JSON array of all history items

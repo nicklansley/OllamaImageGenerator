@@ -177,6 +177,27 @@ class ProxyHandler(BaseHTTPRequestHandler):
                 self.end_headers()
                 self.wfile.write(response_data.encode("utf-8"))
 
+        elif self.path == "/ollamalog/info":
+            message = get_latest_log_message("INFO")
+            if message is None:
+                error_msg = json.dumps({
+                    "error": "No INFO entry found"
+                })
+                self.send_response(404)
+                self.send_header("Content-Type", "application/json")
+                self.send_header("Access-Control-Allow-Origin", "*")
+                self.end_headers()
+                self.wfile.write(error_msg.encode())
+            else:
+                response_data = json.dumps({
+                    "message": message
+                })
+                self.send_response(200)
+                self.send_header("Content-Type", "application/json")
+                self.send_header("Access-Control-Allow-Origin", "*")
+                self.end_headers()
+                self.wfile.write(response_data.encode("utf-8"))
+
         elif self.path == "/history/index":
             # Return JSON array of all history items
             try:

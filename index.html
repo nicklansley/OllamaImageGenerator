@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ollama Image Generator</title>
     <meta name="description"
-        content="Generate AI images using Ollama's image generation models with real-time progress tracking">
+          content="Generate AI images using Ollama's image generation models with real-time progress tracking">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -595,9 +595,9 @@
             bottom: 0;
             right: 0;
             background: linear-gradient(90deg,
-                    transparent,
-                    rgba(255, 255, 255, 0.3),
-                    transparent);
+            transparent,
+            rgba(255, 255, 255, 0.3),
+            transparent);
             animation: shimmer 2s infinite;
         }
 
@@ -684,6 +684,28 @@
             display: block;
             margin-bottom: 0.5rem;
             font-size: 1.05rem;
+        }
+
+        .info-box {
+            background: rgba(79, 172, 254, 0.12);
+            border: 2px solid rgba(79, 172, 254, 0.35);
+            border-radius: 16px;
+            padding: 1rem 1.25rem;
+            margin-top: 1rem;
+            color: #cfe9ff;
+            display: none;
+            animation: fadeInUp 0.4s ease-out;
+        }
+
+        .info-box.active {
+            display: block;
+        }
+
+        .info-box strong {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-size: 1.05rem;
+            color: #9cd8ff;
         }
 
         @media (max-width: 640px) {
@@ -861,689 +883,743 @@
 </head>
 
 <body>
-    <div class="sidebar">
-        <h2>Image History</h2>
-        <ul class="historysubtitle">
-            <li>Double click an image to load it and its creation settings into the main window.</li>
-            <li>Right click an image then click the red 'x' button to delete it forever.
-            </li>
-        </ul>
-        <p class="historysubtitle">&nbsp;</p>
-        <button class="delete-all-btn" id="deleteAllBtn">Delete All History</button>
-        <div class="history-list" id="historyList">
-            <!-- History items will be added here dynamically -->
-        </div>
+<div class="sidebar">
+    <h2>Image History</h2>
+    <ul class="historysubtitle">
+        <li>Double click an image to load it and its creation settings into the main window.</li>
+        <li>Right click an image then click the red 'x' button to delete it forever.
+        </li>
+    </ul>
+    <p class="historysubtitle">&nbsp;</p>
+    <button class="delete-all-btn" id="deleteAllBtn">Delete All History</button>
+    <div class="history-list" id="historyList">
+        <!-- History items will be added here dynamically -->
     </div>
+</div>
 
-    <div class="main-content">
-        <div class="container">
-            <div class="header">
-                <h1>Ollama Image Generator</h1>
-                <p class="subtitle">Transform your ideas into AI-generated images using Ollama running on your own
-                    computer</p>
-            </div>
+<div class="main-content">
+    <div class="container">
+        <div class="header">
+            <h1>Ollama Image Generator</h1>
+            <p class="subtitle">Transform your ideas into AI-generated images using Ollama running on your own
+                computer</p>
+        </div>
 
-            <div class="card">
-                <form id="imageForm">
-                    <div class="form-group">
-                        <label for="modelSelect">Select Model</label>
-                        <select id="modelSelect" required>
-                            <option value="">Loading models...</option>
-                        </select>
-                    </div>
+        <div class="card">
+            <form id="imageForm">
+                <div class="form-group">
+                    <label for="modelSelect">Select Model</label>
+                    <select id="modelSelect" required>
+                        <option value="">Loading models...</option>
+                    </select>
+                </div>
 
-                    <div class="form-group">
-                        <label for="promptInput">Enter Your Prompt</label>
-                        <textarea id="promptInput"
-                            placeholder="Describe the image you want to generate... e.g., 'A serene mountain landscape at sunset with vibrant colors'"
-                            required></textarea>
-                    </div>
+                <div class="form-group">
+                    <label for="promptInput">Enter Your Prompt</label>
+                    <textarea id="promptInput"
+                              placeholder="Describe the image you want to generate... e.g., 'A serene mountain landscape at sunset with vibrant colors'"
+                              required></textarea>
+                </div>
 
-                    <div class="form-group">
-                        <div class="slider-group">
-                            <div class="slider-container">
-                                <div class="slider-label-row">
-                                    <label for="widthSlider">Width</label>
-                                    <span class="slider-value" id="widthValue">1024</span>
-                                </div>
-                                <input type="range" id="widthSlider" min="512" max="2048" step="16" value="1024" />
+                <div class="form-group">
+                    <div class="slider-group">
+                        <div class="slider-container">
+                            <div class="slider-label-row">
+                                <label for="widthSlider">Width</label>
+                                <span class="slider-value" id="widthValue">1024</span>
                             </div>
-                            <div class="slider-container">
-                                <div class="slider-label-row">
-                                    <label for="heightSlider">Height</label>
-                                    <span class="slider-value" id="heightValue">1024</span>
-                                </div>
-                                <input type="range" id="heightSlider" min="512" max="2048" step="16" value="1024" />
+                            <input type="range" id="widthSlider" min="512" max="2048" step="16" value="1024"/>
+                        </div>
+                        <div class="slider-container">
+                            <div class="slider-label-row">
+                                <label for="heightSlider">Height</label>
+                                <span class="slider-value" id="heightValue">1024</span>
                             </div>
-                            <div class="slider-container">
-                                <div class="slider-label-row">
-                                    <label for="seedInput">Seed</label>
-                                    <span class="slider-value" id="seedValue">0</span>
-                                </div>
-                                <input type="range" id="seedInput" min="1" max="999999999999" step="1" value="42" />
-                                <div class="checkbox-container">
-                                    <input type="checkbox" id="randomSeedCheckbox" />
-                                    <label for="randomSeedCheckbox">Random</label>
-                                </div>
+                            <input type="range" id="heightSlider" min="512" max="2048" step="16" value="1024"/>
+                        </div>
+                        <div class="slider-container">
+                            <div class="slider-label-row">
+                                <label for="seedInput">Seed</label>
+                                <span class="slider-value" id="seedValue">0</span>
                             </div>
-                            <div class="slider-container">
-                                <div class="slider-label-row">
-                                    <label for="stepsSlider">Steps</label>
-                                    <span class="slider-value" id="stepsValue">12</span>
-                                </div>
-                                <input type="range" id="stepsSlider" min="4" max="30" step="1" value="12" />
+                            <input type="range" id="seedInput" min="1" max="999999999999" step="1" value="42"/>
+                            <div class="checkbox-container">
+                                <input type="checkbox" id="randomSeedCheckbox"/>
+                                <label for="randomSeedCheckbox">Random</label>
                             </div>
                         </div>
+                        <div class="slider-container">
+                            <div class="slider-label-row">
+                                <label for="stepsSlider">Steps</label>
+                                <span class="slider-value" id="stepsValue">12</span>
+                            </div>
+                            <input type="range" id="stepsSlider" min="4" max="30" step="1" value="12"/>
+                        </div>
                     </div>
-
-                    <div class="button-container">
-                        <button type="submit" id="generateBtn">
-                            Generate Image
-                        </button>
-                        <button type="button" id="clearBtn">
-                            Clear
-                        </button>
-                    </div>
-                </form>
-
-                <div class="progress-container" id="progressContainer">
-                    <div class="progress-bar-wrapper">
-                        <div class="progress-bar" id="progressBar"></div>
-                    </div>
-                    <p class="progress-text" id="progressText">Initializing...</p>
                 </div>
 
-                <div class="error-message" id="errorMessage">
-                    <strong>Error</strong>
-                    <span id="errorText"></span>
+                <div class="button-container">
+                    <button type="submit" id="generateBtn">
+                        Generate Image
+                    </button>
+                    <button type="button" id="clearBtn">
+                        Clear
+                    </button>
                 </div>
+            </form>
 
-                <div class="result-container" id="resultContainer">
-                    <div class="image-wrapper">
-                        <img id="resultImage" alt="Generated image" />
-                    </div>
+            <div class="progress-container" id="progressContainer">
+                <div class="progress-bar-wrapper">
+                    <div class="progress-bar" id="progressBar"></div>
+                </div>
+                <p class="progress-text" id="progressText">Initializing...</p>
+            </div>
+
+            <div class="error-message" id="errorMessage">
+                <strong>Error</strong>
+                <span id="errorText"></span>
+            </div>
+
+            <div class="result-container" id="resultContainer">
+                <div class="image-wrapper">
+                    <img id="resultImage" alt="Generated image"/>
+                </div>
+                <div class="info-box" id="infoBox">
+                    <strong>Info</strong>
+                    <span id="infoText"></span>
                 </div>
             </div>
         </div>
     </div>
+</div>
 
-    <!-- Confirmation Modal -->
-    <div class="modal-overlay" id="confirmModal">
-        <div class="modal-content">
-            <div class="modal-header" id="modalHeader">Confirm Action</div>
-            <div class="modal-body" id="modalBody">Are you sure?</div>
-            <div class="modal-buttons">
-                <button class="modal-btn modal-btn-cancel" id="modalCancelBtn">Cancel</button>
-                <button class="modal-btn modal-btn-confirm" id="modalConfirmBtn">Confirm</button>
-            </div>
+<!-- Confirmation Modal -->
+<div class="modal-overlay" id="confirmModal">
+    <div class="modal-content">
+        <div class="modal-header" id="modalHeader">Confirm Action</div>
+        <div class="modal-body" id="modalBody">Are you sure?</div>
+        <div class="modal-buttons">
+            <button class="modal-btn modal-btn-cancel" id="modalCancelBtn">Cancel</button>
+            <button class="modal-btn modal-btn-confirm" id="modalConfirmBtn">Confirm</button>
         </div>
     </div>
+</div>
 
-    <script>
-        const form = document.getElementById('imageForm');
-        const modelSelect = document.getElementById('modelSelect');
-        const promptInput = document.getElementById('promptInput');
-        const seedInput = document.getElementById('seedInput');
-        const widthSlider = document.getElementById('widthSlider');
-        const heightSlider = document.getElementById('heightSlider');
-        const stepsSlider = document.getElementById('stepsSlider');
-        const widthValue = document.getElementById('widthValue');
-        const heightValue = document.getElementById('heightValue');
-        const seedValue = document.getElementById('seedValue');
-        const stepsValue = document.getElementById('stepsValue');
-        const generateBtn = document.getElementById('generateBtn');
-        const clearBtn = document.getElementById('clearBtn');
-        const progressContainer = document.getElementById('progressContainer');
-        const progressBar = document.getElementById('progressBar');
-        const progressText = document.getElementById('progressText');
-        const resultContainer = document.getElementById('resultContainer');
-        const resultImage = document.getElementById('resultImage');
-        const errorMessage = document.getElementById('errorMessage');
-        const errorText = document.getElementById('errorText');
-        const historyList = document.getElementById('historyList');
-        const randomSeedCheckbox = document.getElementById('randomSeedCheckbox');
-        const deleteAllBtn = document.getElementById('deleteAllBtn');
-        const confirmModal = document.getElementById('confirmModal');
-        const modalHeader = document.getElementById('modalHeader');
-        const modalBody = document.getElementById('modalBody');
-        const modalCancelBtn = document.getElementById('modalCancelBtn');
-        const modalConfirmBtn = document.getElementById('modalConfirmBtn');
+<script>
+    const form = document.getElementById('imageForm');
+    const modelSelect = document.getElementById('modelSelect');
+    const promptInput = document.getElementById('promptInput');
+    const seedInput = document.getElementById('seedInput');
+    const widthSlider = document.getElementById('widthSlider');
+    const heightSlider = document.getElementById('heightSlider');
+    const stepsSlider = document.getElementById('stepsSlider');
+    const widthValue = document.getElementById('widthValue');
+    const heightValue = document.getElementById('heightValue');
+    const seedValue = document.getElementById('seedValue');
+    const stepsValue = document.getElementById('stepsValue');
+    const generateBtn = document.getElementById('generateBtn');
+    const clearBtn = document.getElementById('clearBtn');
+    const progressContainer = document.getElementById('progressContainer');
+    const progressBar = document.getElementById('progressBar');
+    const progressText = document.getElementById('progressText');
+    const resultContainer = document.getElementById('resultContainer');
+    const resultImage = document.getElementById('resultImage');
+    const infoBox = document.getElementById('infoBox');
+    const infoText = document.getElementById('infoText');
+    const errorMessage = document.getElementById('errorMessage');
+    const errorText = document.getElementById('errorText');
+    const historyList = document.getElementById('historyList');
+    const randomSeedCheckbox = document.getElementById('randomSeedCheckbox');
+    const deleteAllBtn = document.getElementById('deleteAllBtn');
+    const confirmModal = document.getElementById('confirmModal');
+    const modalHeader = document.getElementById('modalHeader');
+    const modalBody = document.getElementById('modalBody');
+    const modalCancelBtn = document.getElementById('modalCancelBtn');
+    const modalConfirmBtn = document.getElementById('modalConfirmBtn');
 
-        const STEPS_MIN = 4;
-        const STEPS_MAX = 30;
-        const STEPS_DEFAULT = 12;
+    const STEPS_MIN = 4;
+    const STEPS_MAX = 30;
+    const STEPS_DEFAULT = 12;
 
-        let isGenerating = false;
-        const MODEL_STORAGE_KEY = 'ollama_selected_model';
+    let isGenerating = false;
+    const MODEL_STORAGE_KEY = 'ollama_selected_model';
 
-        // Cache for history data to avoid repeated API calls
-        let historyCache = [];
-        const historyDetailCache = new Map();
+    // Cache for history data to avoid repeated API calls
+    let historyCache = [];
+    const historyDetailCache = new Map();
 
-        function getPromptText(settings) {
-            if (!settings || typeof settings.prompt !== 'string') {
-                return '';
-            }
-            return settings.prompt.trim();
+    function getPromptText(settings) {
+        if (!settings || typeof settings.prompt !== 'string') {
+            return '';
         }
+        return settings.prompt.trim();
+    }
 
-        // Server API Functions (replacing local storage)
-        async function getHistory() {
-            try {
-                const response = await fetch('/history/index');
-                if (!response.ok) {
-                    if (response.status === 500) {
-                        let warnMessage = 'Server error';
-                        try {
-                            const warnResponse = await fetch('/ollamalog/warn');
-                            if (warnResponse.ok) {
-                                const warnData = await warnResponse.json();
-                                if (warnData && warnData.message) {
-                                    warnMessage = warnData.message;
-                                }
+    // Server API Functions (replacing local storage)
+    async function getHistory() {
+        try {
+            const response = await fetch('/history/index');
+            if (!response.ok) {
+                if (response.status === 500) {
+                    let warnMessage = 'Server error';
+                    try {
+                        const warnResponse = await fetch('/ollamalog/warn');
+                        if (warnResponse.ok) {
+                            const warnData = await warnResponse.json();
+                            if (warnData && warnData.message) {
+                                warnMessage = warnData.message;
                             }
-                        } catch (e) {
-                            console.error('Failed to fetch WARN log:', e);
                         }
-                        throw new Error(warnMessage);
+                    } catch (e) {
+                        console.error('Failed to fetch WARN log:', e);
                     }
-                    throw new Error(`HTTP error! status: ${response.status}`);
+                    throw new Error(warnMessage);
                 }
-                const history = await response.json();
-                historyCache = history; // Cache the results
-                return history;
-            } catch (error) {
-                console.error('Error loading history:', error);
-                return [];
+                throw new Error(`HTTP error! status: ${response.status}`);
             }
+            const history = await response.json();
+            historyCache = history; // Cache the results
+            return history;
+        } catch (error) {
+            console.error('Error loading history:', error);
+            return [];
         }
+    }
 
-        async function deleteHistoryItem(id) {
-            try {
-                const response = await fetch(`/history/${id}`, {
-                    method: 'DELETE'
-                });
+    async function deleteHistoryItem(id) {
+        try {
+            const response = await fetch(`/history/${id}`, {
+                method: 'DELETE'
+            });
 
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const result = await response.json();
+            if (result.SUCCESS) {
+                console.log(`Deleted history item: ${id}`);
+                // Remove from cache
+                historyCache = historyCache.filter(item => item.id !== id);
+                historyDetailCache.delete(id);
+                await renderHistory();
+            } else {
+                console.error('Delete failed:', result.error);
+                showError(`Failed to delete image: ${result.error}`);
+            }
+        } catch (error) {
+            console.error('Error deleting history item:', error);
+            showError(`Failed to delete image: ${error.message}`);
+        }
+    }
+
+    async function loadHistoryItem(id) {
+        try {
+            // First check cache
+            let item = historyDetailCache.get(id);
+
+            // If not in cache, fetch from server
+            if (!item) {
+                const response = await fetch(`/history/${id}`);
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
+                item = await response.json();
+                historyDetailCache.set(id, item);
+            }
 
-                const result = await response.json();
-                if (result.SUCCESS) {
-                    console.log(`Deleted history item: ${id}`);
-                    // Remove from cache
-                    historyCache = historyCache.filter(item => item.id !== id);
-                    historyDetailCache.delete(id);
+            if (item && item.image) {
+                // Restore all settings
+                const settings = item.settings || {};
+                if (settings.model) {
+                    modelSelect.value = settings.model;
+                }
+                if (typeof settings.prompt === 'string') {
+                    promptInput.value = settings.prompt;
+                }
+                if (typeof settings.seed !== 'undefined') {
+                    seedInput.value = settings.seed;
+                }
+                if (typeof settings.width !== 'undefined') {
+                    widthSlider.value = settings.width;
+                }
+                if (typeof settings.height !== 'undefined') {
+                    heightSlider.value = settings.height;
+                }
+                if (typeof settings.steps !== 'undefined') {
+                    stepsSlider.value = settings.steps;
+                }
+
+                // Update display values
+                seedValue.textContent = seedInput.value || '0';
+                widthValue.textContent = widthSlider.value;
+                heightValue.textContent = heightSlider.value;
+                stepsValue.textContent = stepsSlider.value;
+
+                // Display the image
+                resultImage.src = `data:image/png;base64,${item.image}`;
+                resultContainer.classList.add('active');
+                errorMessage.classList.remove('active');
+                progressContainer.classList.remove('active');
+            }
+        } catch (error) {
+            console.error('Error loading history item:', error);
+            showError(`Failed to load image: ${error.message}`);
+        }
+    }
+
+    async function loadHistoryPreview(id, imgElement, infoElement) {
+        try {
+            let item = historyDetailCache.get(id);
+            if (!item) {
+                const response = await fetch(`/history/${id}`);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                item = await response.json();
+                historyDetailCache.set(id, item);
+            }
+
+            if (item && item.image) {
+                imgElement.src = `data:image/png;base64,${item.image}`;
+            }
+
+            if (infoElement && item && item.settings) {
+                const promptText = getPromptText(item.settings);
+                if (promptText) {
+                    infoElement.textContent = promptText.substring(0, 30) + '...';
+                }
+            }
+        } catch (error) {
+            console.error('Error loading history preview:', error);
+        }
+    }
+
+    async function renderHistory() {
+        const history = await getHistory();
+        historyList.innerHTML = '';
+
+        if (history.length === 0) {
+            historyList.innerHTML = '<p style="text-align: center; color: var(--text-secondary); font-size: 0.9rem; margin-top: 2rem;">No images yet</p>';
+            return;
+        }
+
+        history.forEach(item => {
+            const historyItem = document.createElement('div');
+            historyItem.className = 'history-item';
+
+            const img = document.createElement('img');
+            img.src = '';
+            const promptText = getPromptText(item.settings);
+            img.alt = promptText ? promptText.substring(0, 50) + '...' : 'History image';
+
+            const info = document.createElement('div');
+            info.className = 'history-item-info';
+            info.textContent = promptText ? promptText.substring(0, 30) + '...' : 'No prompt';
+
+            const deleteBtn = document.createElement('button');
+            deleteBtn.className = 'history-item-delete';
+            deleteBtn.innerHTML = '×';
+            deleteBtn.onclick = (e) => {
+                e.stopPropagation();
+                deleteHistoryItem(item.id);
+            };
+
+            // Double-click to load
+            historyItem.addEventListener('dblclick', () => {
+                loadHistoryItem(item.id);
+            });
+
+            historyItem.appendChild(img);
+            historyItem.appendChild(info);
+            historyItem.appendChild(deleteBtn);
+            historyList.appendChild(historyItem);
+
+            if (item.id) {
+                loadHistoryPreview(item.id, img, info);
+            }
+        });
+    }
+
+    // Modal utility functions
+    function showModal(title, message, onConfirm) {
+        modalHeader.textContent = title;
+        modalBody.textContent = message;
+        confirmModal.classList.add('active');
+
+        // Remove any existing listeners
+        const newConfirmBtn = modalConfirmBtn.cloneNode(true);
+        modalConfirmBtn.parentNode.replaceChild(newConfirmBtn, modalConfirmBtn);
+        const newCancelBtn = modalCancelBtn.cloneNode(true);
+        modalCancelBtn.parentNode.replaceChild(newCancelBtn, modalCancelBtn);
+
+        // Add new listeners
+        newConfirmBtn.addEventListener('click', () => {
+            confirmModal.classList.remove('active');
+            if (onConfirm) onConfirm();
+        });
+
+        newCancelBtn.addEventListener('click', () => {
+            confirmModal.classList.remove('active');
+        });
+
+        // Update references
+        window.modalConfirmBtn = newConfirmBtn;
+        window.modalCancelBtn = newCancelBtn;
+    }
+
+    // Close modal when clicking outside
+    confirmModal.addEventListener('click', (e) => {
+        if (e.target === confirmModal) {
+            confirmModal.classList.remove('active');
+        }
+    });
+
+    // Delete all history function
+    async function deleteAllHistory() {
+        showModal(
+            'Delete All History',
+            'This is irreversible! Proceed?',
+            async () => {
+                try {
+                    // Get all history items
+                    const history = await getHistory();
+
+                    if (history.length === 0) {
+                        console.log('No history to delete');
+                        return;
+                    }
+
+                    // Delete each item
+                    let successCount = 0;
+                    let failCount = 0;
+
+                    for (const item of history) {
+                        try {
+                            const response = await fetch(`/history/${item.id}`, {
+                                method: 'DELETE'
+                            });
+                            const result = await response.json();
+
+                            if (result.SUCCESS) {
+                                successCount++;
+                            } else {
+                                failCount++;
+                                console.error(`Failed to delete ${item.id}:`, result.error);
+                            }
+                        } catch (error) {
+                            failCount++;
+                            console.error(`Error deleting ${item.id}:`, error);
+                        }
+                    }
+
+                    console.log(`Deleted ${successCount} items, ${failCount} failed`);
+
+                    // Clear cache and refresh
+                    historyCache = [];
+                    historyDetailCache.clear();
                     await renderHistory();
-                } else {
-                    console.error('Delete failed:', result.error);
-                    showError(`Failed to delete image: ${result.error}`);
+
+                    if (failCount > 0) {
+                        showError(`Deleted ${successCount} items, but ${failCount} failed`);
+                    }
+                } catch (error) {
+                    console.error('Error deleting all history:', error);
+                    showError(`Failed to delete history: ${error.message}`);
                 }
-            } catch (error) {
-                console.error('Error deleting history item:', error);
-                showError(`Failed to delete image: ${error.message}`);
             }
-        }
+        );
+    }
 
-        async function loadHistoryItem(id) {
-            try {
-                // First check cache
-                let item = historyDetailCache.get(id);
+    // Delete all button event listener
+    deleteAllBtn.addEventListener('click', deleteAllHistory);
 
-                // If not in cache, fetch from server
-                if (!item) {
-                    const response = await fetch(`/history/${id}`);
-                    if (!response.ok) {
-                        throw new Error(`HTTP error! status: ${response.status}`);
-                    }
-                    item = await response.json();
-                    historyDetailCache.set(id, item);
-                }
+    // Load history on page load
+    renderHistory();
 
-                if (item && item.image) {
-                    // Restore all settings
-                    const settings = item.settings || {};
-                    if (settings.model) {
-                        modelSelect.value = settings.model;
-                    }
-                    if (typeof settings.prompt === 'string') {
-                        promptInput.value = settings.prompt;
-                    }
-                    if (typeof settings.seed !== 'undefined') {
-                        seedInput.value = settings.seed;
-                    }
-                    if (typeof settings.width !== 'undefined') {
-                        widthSlider.value = settings.width;
-                    }
-                    if (typeof settings.height !== 'undefined') {
-                        heightSlider.value = settings.height;
-                    }
-                    if (typeof settings.steps !== 'undefined') {
-                        stepsSlider.value = settings.steps;
-                    }
-
-                    // Update display values
-                    seedValue.textContent = seedInput.value || '0';
-                    widthValue.textContent = widthSlider.value;
-                    heightValue.textContent = heightSlider.value;
-                    stepsValue.textContent = stepsSlider.value;
-
-                    // Display the image
-                    resultImage.src = `data:image/png;base64,${item.image}`;
-                    resultContainer.classList.add('active');
-                    errorMessage.classList.remove('active');
-                    progressContainer.classList.remove('active');
-                }
-            } catch (error) {
-                console.error('Error loading history item:', error);
-                showError(`Failed to load image: ${error.message}`);
+    // Load models on page load
+    async function loadModels() {
+        try {
+            const response = await fetch('/models');
+            if (!response.ok) {
+                throw new Error(`Failed to fetch models: ${response.status}`);
             }
-        }
+            const models = await response.json();
 
-        async function loadHistoryPreview(id, imgElement, infoElement) {
-            try {
-                let item = historyDetailCache.get(id);
-                if (!item) {
-                    const response = await fetch(`/history/${id}`);
-                    if (!response.ok) {
-                        throw new Error(`HTTP error! status: ${response.status}`);
-                    }
-                    item = await response.json();
-                    historyDetailCache.set(id, item);
-                }
+            // Clear loading option
+            modelSelect.innerHTML = '';
 
-                if (item && item.image) {
-                    imgElement.src = `data:image/png;base64,${item.image}`;
-                }
-
-                if (infoElement && item && item.settings) {
-                    const promptText = getPromptText(item.settings);
-                    if (promptText) {
-                        infoElement.textContent = promptText.substring(0, 30) + '...';
-                    }
-                }
-            } catch (error) {
-                console.error('Error loading history preview:', error);
-            }
-        }
-
-        async function renderHistory() {
-            const history = await getHistory();
-            historyList.innerHTML = '';
-
-            if (history.length === 0) {
-                historyList.innerHTML = '<p style="text-align: center; color: var(--text-secondary); font-size: 0.9rem; margin-top: 2rem;">No images yet</p>';
+            if (models.length === 0) {
+                modelSelect.innerHTML = '<option value="">No models available</option>';
                 return;
             }
 
-            history.forEach(item => {
-                const historyItem = document.createElement('div');
-                historyItem.className = 'history-item';
-
-                const img = document.createElement('img');
-                img.src = '';
-                const promptText = getPromptText(item.settings);
-                img.alt = promptText ? promptText.substring(0, 50) + '...' : 'History image';
-
-                const info = document.createElement('div');
-                info.className = 'history-item-info';
-                info.textContent = promptText ? promptText.substring(0, 30) + '...' : 'No prompt';
-
-                const deleteBtn = document.createElement('button');
-                deleteBtn.className = 'history-item-delete';
-                deleteBtn.innerHTML = '×';
-                deleteBtn.onclick = (e) => {
-                    e.stopPropagation();
-                    deleteHistoryItem(item.id);
-                };
-
-                // Double-click to load
-                historyItem.addEventListener('dblclick', () => {
-                    loadHistoryItem(item.id);
-                });
-
-                historyItem.appendChild(img);
-                historyItem.appendChild(info);
-                historyItem.appendChild(deleteBtn);
-                historyList.appendChild(historyItem);
-
-                if (item.id) {
-                    loadHistoryPreview(item.id, img, info);
-                }
-            });
-        }
-
-        // Modal utility functions
-        function showModal(title, message, onConfirm) {
-            modalHeader.textContent = title;
-            modalBody.textContent = message;
-            confirmModal.classList.add('active');
-
-            // Remove any existing listeners
-            const newConfirmBtn = modalConfirmBtn.cloneNode(true);
-            modalConfirmBtn.parentNode.replaceChild(newConfirmBtn, modalConfirmBtn);
-            const newCancelBtn = modalCancelBtn.cloneNode(true);
-            modalCancelBtn.parentNode.replaceChild(newCancelBtn, modalCancelBtn);
-
-            // Add new listeners
-            newConfirmBtn.addEventListener('click', () => {
-                confirmModal.classList.remove('active');
-                if (onConfirm) onConfirm();
+            // Populate dropdown with models
+            models.forEach(model => {
+                const option = document.createElement('option');
+                option.value = model;
+                option.textContent = model;
+                modelSelect.appendChild(option);
             });
 
-            newCancelBtn.addEventListener('click', () => {
-                confirmModal.classList.remove('active');
-            });
-
-            // Update references
-            window.modalConfirmBtn = newConfirmBtn;
-            window.modalCancelBtn = newCancelBtn;
-        }
-
-        // Close modal when clicking outside
-        confirmModal.addEventListener('click', (e) => {
-            if (e.target === confirmModal) {
-                confirmModal.classList.remove('active');
+            // Load saved model from localStorage
+            const savedModel = localStorage.getItem(MODEL_STORAGE_KEY);
+            if (savedModel && models.includes(savedModel)) {
+                modelSelect.value = savedModel;
+            } else if (models.length > 0) {
+                // Default to first model if no saved preference
+                modelSelect.value = models[0];
             }
-        });
+        } catch (error) {
+            console.error('Error loading models:', error);
+            modelSelect.innerHTML = '<option value="">Error loading models</option>';
+            showError(`Failed to load models: ${error.message}`);
+        }
+    }
 
-        // Delete all history function
-        async function deleteAllHistory() {
-            showModal(
-                'Delete All History',
-                'This is irreversible! Proceed?',
-                async () => {
+    // Save selected model to localStorage when changed
+    modelSelect.addEventListener('change', () => {
+        if (modelSelect.value) {
+            localStorage.setItem(MODEL_STORAGE_KEY, modelSelect.value);
+        }
+    });
+
+    // Load models when page loads
+    loadModels();
+
+    // Update slider value displays
+    widthSlider.addEventListener('input', (e) => {
+        widthValue.textContent = e.target.value;
+    });
+
+    heightSlider.addEventListener('input', (e) => {
+        heightValue.textContent = e.target.value;
+    });
+
+    seedInput.addEventListener('input', (e) => {
+        seedValue.textContent = e.target.value || '0';
+    });
+
+    stepsSlider.min = STEPS_MIN;
+    stepsSlider.max = STEPS_MAX;
+    stepsSlider.value = STEPS_DEFAULT;
+    stepsValue.textContent = STEPS_DEFAULT;
+
+    stepsSlider.addEventListener('input', (e) => {
+        stepsValue.textContent = e.target.value;
+    });
+
+    seedValue.textContent = seedInput.value || '0';
+
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        if (isGenerating) return;
+
+        const prompt = promptInput.value.trim();
+        if (!prompt) return;
+
+        // Generate random seed if checkbox is checked
+        let seed = parseInt(seedInput.value) || 0;
+        if (randomSeedCheckbox.checked) {
+            const minSeed = parseInt(seedInput.min);
+            const maxSeed = parseInt(seedInput.max);
+            seed = Math.floor(Math.random() * (maxSeed - minSeed + 1)) + minSeed;
+            seedInput.value = seed;
+            seedValue.textContent = seed;
+        }
+
+        const width = parseInt(widthSlider.value);
+        const height = parseInt(heightSlider.value);
+        const steps = parseInt(stepsSlider.value);
+
+        await generateImage(prompt, seed, width, height, steps);
+    });
+
+    clearBtn.addEventListener('click', () => {
+        promptInput.value = '';
+        seedInput.value = '0';
+        widthSlider.value = '512';
+        heightSlider.value = '512';
+        widthValue.textContent = '512';
+        heightValue.textContent = '512';
+        seedValue.textContent = '0';
+        stepsSlider.value = String(STEPS_DEFAULT);
+        stepsValue.textContent = String(STEPS_DEFAULT);
+        randomSeedCheckbox.checked = false;
+        resultContainer.classList.remove('active');
+        infoBox.classList.remove('active');
+        infoText.textContent = '';
+        errorMessage.classList.remove('active');
+        progressContainer.classList.remove('active');
+        progressBar.style.width = '0%';
+    });
+
+    async function generateImage(prompt, seed, width, height, steps) {
+        isGenerating = true;
+        generateBtn.disabled = true;
+        generateBtn.innerHTML = '<span class="spinner"></span>Generating...';
+
+        // Hide previous results and errors
+        resultContainer.classList.remove('active');
+        infoBox.classList.remove('active');
+        infoText.textContent = '';
+        errorMessage.classList.remove('active');
+
+        // Show progress
+        progressContainer.classList.add('active');
+        progressBar.style.width = '0%';
+        progressText.textContent = 'Initializing...';
+
+        try {
+            const response = await fetch('/generate', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    model: modelSelect.value,
+                    prompt: prompt,
+                    suffix: "",
+                    system: "",
+                    template: "",
+                    options: null,
+                    seed: seed,
+                    width: width,
+                    height: height,
+                    steps: steps,
+                })
+            });
+
+
+            if (!response.ok) {
+                if (response.status === 500) {
+                    let warnMessage = 'Server error';
                     try {
-                        // Get all history items
-                        const history = await getHistory();
-
-                        if (history.length === 0) {
-                            console.log('No history to delete');
-                            return;
-                        }
-
-                        // Delete each item
-                        let successCount = 0;
-                        let failCount = 0;
-
-                        for (const item of history) {
-                            try {
-                                const response = await fetch(`/history/${item.id}`, {
-                                    method: 'DELETE'
-                                });
-                                const result = await response.json();
-
-                                if (result.SUCCESS) {
-                                    successCount++;
-                                } else {
-                                    failCount++;
-                                    console.error(`Failed to delete ${item.id}:`, result.error);
-                                }
-                            } catch (error) {
-                                failCount++;
-                                console.error(`Error deleting ${item.id}:`, error);
+                        const warnResponse = await fetch('/ollamalog/warn');
+                        if (warnResponse.ok) {
+                            const warnData = await warnResponse.json();
+                            if (warnData && warnData.message) {
+                                warnMessage = warnData.message;
                             }
                         }
-
-                        console.log(`Deleted ${successCount} items, ${failCount} failed`);
-
-                        // Clear cache and refresh
-                        historyCache = [];
-                        historyDetailCache.clear();
-                        await renderHistory();
-
-                        if (failCount > 0) {
-                            showError(`Deleted ${successCount} items, but ${failCount} failed`);
-                        }
-                    } catch (error) {
-                        console.error('Error deleting all history:', error);
-                        showError(`Failed to delete history: ${error.message}`);
-                    }
-                }
-            );
-        }
-
-        // Delete all button event listener
-        deleteAllBtn.addEventListener('click', deleteAllHistory);
-
-        // Load history on page load
-        renderHistory();
-
-        // Load models on page load
-        async function loadModels() {
-            try {
-                const response = await fetch('/models');
-                if (!response.ok) {
-                    throw new Error(`Failed to fetch models: ${response.status}`);
-                }
-                const models = await response.json();
-
-                // Clear loading option
-                modelSelect.innerHTML = '';
-
-                if (models.length === 0) {
-                    modelSelect.innerHTML = '<option value="">No models available</option>';
-                    return;
-                }
-
-                // Populate dropdown with models
-                models.forEach(model => {
-                    const option = document.createElement('option');
-                    option.value = model;
-                    option.textContent = model;
-                    modelSelect.appendChild(option);
-                });
-
-                // Load saved model from localStorage
-                const savedModel = localStorage.getItem(MODEL_STORAGE_KEY);
-                if (savedModel && models.includes(savedModel)) {
-                    modelSelect.value = savedModel;
-                } else if (models.length > 0) {
-                    // Default to first model if no saved preference
-                    modelSelect.value = models[0];
-                }
-            } catch (error) {
-                console.error('Error loading models:', error);
-                modelSelect.innerHTML = '<option value="">Error loading models</option>';
-                showError(`Failed to load models: ${error.message}`);
-            }
-        }
-
-        // Save selected model to localStorage when changed
-        modelSelect.addEventListener('change', () => {
-            if (modelSelect.value) {
-                localStorage.setItem(MODEL_STORAGE_KEY, modelSelect.value);
-            }
-        });
-
-        // Load models when page loads
-        loadModels();
-
-        // Update slider value displays
-        widthSlider.addEventListener('input', (e) => {
-            widthValue.textContent = e.target.value;
-        });
-
-        heightSlider.addEventListener('input', (e) => {
-            heightValue.textContent = e.target.value;
-        });
-
-        seedInput.addEventListener('input', (e) => {
-            seedValue.textContent = e.target.value || '0';
-        });
-
-        stepsSlider.min = STEPS_MIN;
-        stepsSlider.max = STEPS_MAX;
-        stepsSlider.value = STEPS_DEFAULT;
-        stepsValue.textContent = STEPS_DEFAULT;
-
-        stepsSlider.addEventListener('input', (e) => {
-            stepsValue.textContent = e.target.value;
-        });
-
-        seedValue.textContent = seedInput.value || '0';
-
-        form.addEventListener('submit', async (e) => {
-            e.preventDefault();
-
-            if (isGenerating) return;
-
-            const prompt = promptInput.value.trim();
-            if (!prompt) return;
-
-            // Generate random seed if checkbox is checked
-            let seed = parseInt(seedInput.value) || 0;
-            if (randomSeedCheckbox.checked) {
-                const minSeed = parseInt(seedInput.min);
-                const maxSeed = parseInt(seedInput.max);
-                seed = Math.floor(Math.random() * (maxSeed - minSeed + 1)) + minSeed;
-                seedInput.value = seed;
-                seedValue.textContent = seed;
-            }
-
-            const width = parseInt(widthSlider.value);
-            const height = parseInt(heightSlider.value);
-            const steps = parseInt(stepsSlider.value);
-
-            await generateImage(prompt, seed, width, height, steps);
-        });
-
-        clearBtn.addEventListener('click', () => {
-            promptInput.value = '';
-            seedInput.value = '0';
-            widthSlider.value = '512';
-            heightSlider.value = '512';
-            widthValue.textContent = '512';
-            heightValue.textContent = '512';
-            seedValue.textContent = '0';
-            stepsSlider.value = String(STEPS_DEFAULT);
-            stepsValue.textContent = String(STEPS_DEFAULT);
-            randomSeedCheckbox.checked = false;
-            resultContainer.classList.remove('active');
-            errorMessage.classList.remove('active');
-            progressContainer.classList.remove('active');
-            progressBar.style.width = '0%';
-        });
-
-        async function generateImage(prompt, seed, width, height, steps) {
-            isGenerating = true;
-            generateBtn.disabled = true;
-            generateBtn.innerHTML = '<span class="spinner"></span>Generating...';
-
-            // Hide previous results and errors
-            resultContainer.classList.remove('active');
-            errorMessage.classList.remove('active');
-
-            // Show progress
-            progressContainer.classList.add('active');
-            progressBar.style.width = '0%';
-            progressText.textContent = 'Initializing...';
-
-            try {
-                const response = await fetch('/generate', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        model: modelSelect.value,
-                        prompt: prompt,
-                        suffix: "",
-                        system: "",
-                        template: "",
-                        options: null,
-                        seed: seed,
-                        width: width,
-                        height: height,
-                        steps: steps,
-                    })
-                });
-
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-
-                const reader = response.body.getReader();
-                const decoder = new TextDecoder();
-                let buffer = '';
-
-                while (true) {
-                    const { done, value } = await reader.read();
-
-                    if (done) break;
-
-                    buffer += decoder.decode(value, { stream: true });
-                    const lines = buffer.split('\n');
-
-                    // Process all complete lines
-                    for (let i = 0; i < lines.length - 1; i++) {
-                        const line = lines[i].trim();
-                        if (line) {
-                            try {
-                                const data = JSON.parse(line);
-                                await handleStreamData(data);
-                            } catch (e) {
-                                console.error('Error parsing JSON:', e, 'Line:', line);
-                            }
-                        }
-                    }
-
-                    // Keep the last incomplete line in the buffer
-                    buffer = lines[lines.length - 1];
-                }
-
-                // Process any remaining data in buffer
-                if (buffer.trim()) {
-                    try {
-                        const data = JSON.parse(buffer);
-                        handleStreamData(data);
                     } catch (e) {
-                        console.error('Error parsing final JSON:', e);
+                        console.error('Failed to fetch WARN log:', e);
+                    }
+                    throw new Error(warnMessage);
+                }
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder();
+            let buffer = '';
+
+            while (true) {
+                const {done, value} = await reader.read();
+
+                if (done) break;
+
+                buffer += decoder.decode(value, {stream: true});
+                const lines = buffer.split('\n');
+
+                // Process all complete lines
+                for (let i = 0; i < lines.length - 1; i++) {
+                    const line = lines[i].trim();
+                    if (line) {
+                        try {
+                            const data = JSON.parse(line);
+                            await handleStreamData(data);
+                        } catch (e) {
+                            console.error('Error parsing JSON:', e, 'Line:', line);
+                        }
                     }
                 }
 
-            } catch (error) {
-                showError(`Failed to generate image: ${error.message}`);
+                // Keep the last incomplete line in the buffer
+                buffer = lines[lines.length - 1];
+            }
+
+            // Process any remaining data in buffer
+            if (buffer.trim()) {
+                try {
+                    const data = JSON.parse(buffer);
+                    await handleStreamData(data);
+                } catch (e) {
+                    console.error('Error parsing final JSON:', e);
+                }
+            }
+
+            let infoMessagePromise = null;
+            if (response.ok && response.status === 200) {
+                infoMessagePromise = (async () => {
+                    try {
+                        const infoResponse = await fetch('/ollamalog/info');
+                        if (!infoResponse.ok) {
+                            return null;
+                        }
+                        const infoData = await infoResponse.json();
+                        return infoData && infoData.message ? infoData.message : null;
+                    } catch (e) {
+                        console.error('Failed to fetch INFO log:', e);
+                        return null;
+                    }
+                })();
+            }
+            if (infoMessagePromise) {
+                const infoMessage = await infoMessagePromise;
+                if (infoMessage) {
+                    showInfo(infoMessage);
+                } else {
+                    infoBox.classList.remove('active');
+                    infoText.textContent = '';
+                }
+            }
+        } catch (error) {
+            showError(`Failed to generate image: ${error.message}`);
+            progressContainer.classList.remove('active');
+        } finally {
+            isGenerating = false;
+            generateBtn.disabled = false;
+            generateBtn.textContent = 'Generate Image';
+        }
+    }
+
+
+    async function handleStreamData(data) {
+        if (data.done) {
+            if (data.image) {
+                const imageBase64 = data.image;
+                resultImage.src = `data:image/png;base64,${imageBase64}`;
+                resultContainer.classList.add('active');
                 progressContainer.classList.remove('active');
-            } finally {
-                isGenerating = false;
-                generateBtn.disabled = false;
-                generateBtn.textContent = 'Generate Image';
+
+                // Refresh history from server (server saves automatically)
+                // Wait a bit for the server to finish saving
+                setTimeout(async () => {
+                    await renderHistory();
+                }, 500);
+            } else {
+                showError('Image data not found in response');
+                progressContainer.classList.remove('active');
             }
+        } else if (data.completed) {
+            // Progress update
+            const responseText = data.completed;
+            progressText.textContent = `Running step ${data.completed} of ${data.total}`;
         }
+    }
 
+    function showError(message) {
+        errorText.textContent = message;
+        errorMessage.classList.add('active');
+    }
 
-        async function handleStreamData(data) {
-            if (data.done) {
-                if (data.image) {
-                    const imageBase64 = data.image;
-                    resultImage.src = `data:image/png;base64,${imageBase64}`;
-                    resultContainer.classList.add('active');
-                    progressContainer.classList.remove('active');
-
-                    // Refresh history from server (server saves automatically)
-                    // Wait a bit for the server to finish saving
-                    setTimeout(async () => {
-                        await renderHistory();
-                    }, 500);
-                }
-                else {
-                    showError('Image data not found in response');
-                    progressContainer.classList.remove('active');
-                }
-            }
-            else if (data.completed) {
-                // Progress update
-                const responseText = data.completed;
-                progressText.textContent = `Running step ${data.completed} of ${data.total}`;
-            }
-        }
-
-        function showError(message) {
-            errorText.textContent = message;
-            errorMessage.classList.add('active');
-        }
-    </script>
+    function showInfo(message) {
+        infoText.textContent = message;
+        infoBox.classList.add('active');
+    }
+</script>
 </body>
 
 </html>

@@ -6,6 +6,10 @@ This project is a simple proxy server for the Ollama Image Generator, which serv
 - **`server.py`**: The backend server that handles API requests and serves the HTML interface.
 - **`index.html`**: The frontend interface for users to interact with the image generation functionality.
 
+## Latest Updates
+- 2026-01-26: Search Ollama log to find causes of failed image creation, as well as the log entry of time taken for a successful run.
+- 2026-01-24: Added support for additional models.
+- 
 ## Prerequisites
 - Python 3.9 or later
 - Ollama CLI - *ensure you have the latest version of Ollama installed <pre>ollama --version</pre> should be at least '0.15.0'*
@@ -42,6 +46,7 @@ ollama pull x/flux2-klein:latest
 ## To set up and start the server
 - Clone the repository - OR - just download <a href="https://raw.githubusercontent.com/nicklansley/OllamaImageGenerator/refs/heads/main/server.py">server.py</a> and <a href="https://raw.githubusercontent.com/nicklansley/OllamaImageGenerator/refs/heads/main/index.html">index.html</a> to the same folder (<-- links to raw source files).
 - From the terminal run at least one of the above `ollama pull` commands to pull the model(s) you want to use.
+- At the top of server.py alter the value for the OLLAMA_LOG_LOCATION if necessary (by default it is set to default MacOS location)
 - Run `python3 server.py` in the terminal.
 
 

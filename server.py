@@ -15,7 +15,7 @@ import os
 import re
 
 OLLAMA_API_URL = "http://localhost:11434/api"
-OLLAMA_LOG_LOCATION = "~/.ollama/logs/app.log" # Location of Ollama Log on MacOS - change for Windows and Linux if different!
+OLLAMA_LOG_LOCATION = "~/.ollama/logs/server.log" # Location of Ollama Log on MacOS - change for Windows and Linux if different!
 PORT = 8080
 IMAGE_GEN_MODEL_LIST = [
     "x/z-image-turbo:bf16",

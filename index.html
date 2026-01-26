@@ -1032,6 +1032,21 @@
             try {
                 const response = await fetch('/history/index');
                 if (!response.ok) {
+                    if (response.status === 500) {
+                        let warnMessage = 'Server error';
+                        try {
+                            const warnResponse = await fetch('/ollamalog/warn');
+                            if (warnResponse.ok) {
+                                const warnData = await warnResponse.json();
+                                if (warnData && warnData.message) {
+                                    warnMessage = warnData.message;
+                                }
+                            }
+                        } catch (e) {
+                            console.error('Failed to fetch WARN log:', e);
+                        }
+                        throw new Error(warnMessage);
+                    }
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
                 const history = await response.json();
@@ -1466,7 +1481,7 @@
                         if (line) {
                             try {
                                 const data = JSON.parse(line);
-                                handleStreamData(data);
+                                await handleStreamData(data);
                             } catch (e) {
                                 console.error('Error parsing JSON:', e, 'Line:', line);
                             }
